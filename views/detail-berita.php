@@ -89,6 +89,48 @@ $tanggal = date('d F Y', strtotime($berita['tanggal']));
         .back-btn:hover {
             color: var(--primary);
         }
+
+        .share-container {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid var(--glass-border);
+            text-align: center;
+        }
+
+        .share-title {
+            font-size: 1.2rem;
+            color: var(--text-main);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .share-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .share-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            color: white !important;
+            text-decoration: none;
+            font-size: 1.5rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .share-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .share-wa { background-color: #25D366; }
+        .share-fb { background-color: #1877F2; }
+        .share-ig { background: -webkit-linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
     </style>
 </head>
 
@@ -114,6 +156,31 @@ $tanggal = date('d F Y', strtotime($berita['tanggal']));
             <div class="article-content glass" style="padding: 50px; border-radius: 30px;">
                 <?= nl2br(htmlspecialchars($berita['isi'])) ?>
 
+                <?php
+                // Generate current page URL for sharing
+                $current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+                $encoded_url = urlencode($current_url);
+                $encoded_title = urlencode($berita['judul']);
+                ?>
+
+                <div class="share-container">
+                    <div class="share-title">Bagikan artikel ini:</div>
+                    <div class="share-buttons">
+                        <!-- WhatsApp -->
+                        <a href="https://api.whatsapp.com/send?text=<?= $encoded_title ?>%0A<?= $encoded_url ?>" target="_blank" class="share-btn share-wa" aria-label="Bagikan ke WhatsApp">
+                            <i class="fa-brands fa-whatsapp"></i>
+                        </a>
+                        <!-- Facebook -->
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=<?= $encoded_url ?>" target="_blank" class="share-btn share-fb" aria-label="Bagikan ke Facebook">
+                            <i class="fa-brands fa-facebook-f"></i>
+                        </a>
+                        <!-- Instagram (Copy Link Method) -->
+                        <a href="javascript:void(0)" onclick="copyToClipboard('<?= $current_url ?>')" class="share-btn share-ig" aria-label="Salin Tautan untuk Instagram" title="Salin Tautan">
+                            <i class="fa-brands fa-instagram"></i>
+                        </a>
+                    </div>
+                </div>
+
                 <div style="margin-top: 40px; text-align: center;">
                     <a href="berita.php" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Kembali ke Daftar
                         Berita</a>
@@ -121,6 +188,16 @@ $tanggal = date('d F Y', strtotime($berita['tanggal']));
             </div>
         </div>
     </article>
+
+    <script>
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(function() {
+            alert('Tautan berhasil disalin! Anda bisa langsung membagikannya ke teman atau di bio Instagram.');
+        }, function(err) {
+            console.error('Gagal menyalin tautan: ', err);
+        });
+    }
+    </script>
 
     <?php include '../partials/Footer.php'; ?>
 

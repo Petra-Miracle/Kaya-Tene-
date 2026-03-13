@@ -13,57 +13,52 @@ $success = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $judul = trim($_POST['judul']);
-    $deskripsi = $_POST['deskripsi'];
-    $tanggal = date('Y-m-d'); // Current date
-
+    $deskripsi = trim($_POST['deskripsi']);
+    $btn_text = !empty(trim($_POST['btn_text'])) ? trim($_POST['btn_text']) : 'Profil kami';
+    $btn_link = !empty(trim($_POST['btn_link'])) ? trim($_POST['btn_link']) : '#tentang';
+    $tanggal = date('Y-m-d'); // Default to current date for timestamp needs
     $gambar = '';
 
     if (!empty($judul) && !empty($deskripsi)) {
         // Handle file upload
         if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
-            $allowed_ext = ['jpg', 'jpeg', 'png', 'webp'];
+            $allowed_ext = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
             $file_name = $_FILES['gambar']['name'];
             $file_tmp = $_FILES['gambar']['tmp_name'];
             $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
 
             if (in_array($file_ext, $allowed_ext)) {
-                // Create unique filename
-                $new_filename = uniqid() . '_galeri.' . $file_ext;
+                $new_filename = uniqid() . '_carousel.' . $file_ext;
                 $upload_path = '../uploads/';
 
-                // Create directory if not exists
+                // Create folder if not exists
                 if (!is_dir($upload_path)) {
                     mkdir($upload_path, 0777, true);
                 }
 
                 if (move_uploaded_file($file_tmp, $upload_path . $new_filename)) {
                     $gambar = $new_filename;
+
+                    // Insert into database
+                    $stmt = $conn->prepare("INSERT INTO Carousel (judul, deskripsi, btn_text, btn_link, gambar, tanggal) VALUES (?, ?, ?, ?, ?, ?)");
+                    $stmt->bind_param("ssssss", $judul, $deskripsi, $btn_text, $btn_link, $gambar, $tanggal);
+
+                    if ($stmt->execute()) {
+                        $success = "Banner Carousel berhasil ditambahkan!";
+                    } else {
+                        $error = "Gagal menyimpan banner: " . $conn->error;
+                    }
                 } else {
-                    $error = "Gagal mengunggah foto.";
+                    $error = "Gagal mengunggah foto banner.";
                 }
             } else {
-                $error = "Format gambar tidak didukung. Gunakan JPG, PNG, atau WEBP.";
+                $error = "Format gambar tidak didukung. Gunakan JPG, PNG, WEBP, atau GIF.";
             }
         } else {
-            $error = "Foto Galeri wajib diunggah.";
-        }
-
-        if (empty($error) && !empty($gambar)) {
-            // Insert into database
-            $stmt = $conn->prepare("INSERT INTO Galeri (judul, deskripsi, gambar, tanggal) VALUES (?, ?, ?, ?)");
-            $stmt->bind_param("ssss", $judul, $deskripsi, $gambar, $tanggal);
-
-            if ($stmt->execute()) {
-                $success = "Foto Galeri berhasil dipublikasikan!";
-                // Clear fields
-                $judul = '';
-                $deskripsi = '';
-            } else {
-                $error = "Gagal mempublikasikan foto galeri: " . $conn->error;
-            }
+            $error = "Anda harus mengunggah file foto/banner.";
         }
     } else {
-        $error = "Judul dan Deskripsi wajib diisi.";
+        $error = "Judul dan Deskripsi banner wajib diisi.";
     }
 }
 ?>
@@ -73,8 +68,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tambah Galeri - Yayasan Kaya Tene</title>
+    <title>Tambah Carousel - Yayasan Kaya Tene</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="partials/Sidebar.css">
     <style>
 
         .form-container {
@@ -113,7 +109,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         textarea.form-control {
             resize: vertical;
-            min-height: 200px;
+            min-height: 150px;
             font-family: inherit;
         }
 
@@ -121,7 +117,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .file-upload-wrapper {
             position: relative;
             width: 100%;
-            height: 150px;
+            height: 200px; /* Made higher for banners */
             border: 2px dashed var(--glass-border);
             border-radius: 10px;
             display: flex;
@@ -199,7 +195,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             box-shadow: 0 10px 20px rgba(255, 107, 0, 0.4);
         }
 
-
     </style>
 </head>
 
@@ -214,16 +209,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <main class="main-content">
             <div class="dashboard-header">
                 <div class="header-title">
-                    <h1>Tambah Galeri</h1>
-                    <p class="text-muted" style="font-size: 1.1rem;">Buat dan publikasikan foto kegiatan, seperti
-                        Agrokultur Kaya Tene.</p>
+                    <h1>Tambah Carousel Baru</h1>
+                    <p class="text-muted" style="font-size: 1.1rem;">Upload slide banner yang akan muncul secara bergerak di halaman beranda.</p>
                 </div>
 
                 <div class="admin-profile-wrapper">
                     <button class="theme-toggle-btn" id="adminThemeToggle" title="Toggle Light/Dark Mode">
                         <i class="fa-solid fa-moon" id="adminThemeIcon"></i>
                     </button>
-                    <!-- Simulated admin details since they might not be fetched on this page, but if session exists we can use it -->
+                    <!-- Simulated admin details -->
                     <div class="admin-profile glass">
                         <div class="admin-avatar">
                             <?= isset($_SESSION['admin_username']) ? strtoupper(substr($_SESSION['admin_username'], 0, 1)) : 'A' ?>
@@ -250,36 +244,52 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 <form method="POST" action="" enctype="multipart/form-data">
                     <div class="form-group">
-                        <label for="judul" class="form-label">Nama Kegiatan / Judul Foto</label>
+                        <label for="judul" class="form-label">Judul Caption Banner (Max 250 Karakter)</label>
                         <input type="text" id="judul" name="judul" class="form-control"
-                            placeholder="Contoh: Agrokultur Kaya Tene..."
-                            value="<?= isset($judul) ? htmlspecialchars($judul) : '' ?>" required>
+                            placeholder="Misal: Pendidikan Karakter..." required>
                     </div>
 
                     <div class="form-group">
-                        <label for="gambar" class="form-label">Unggah Foto Galeri</label>
+                        <label for="gambar" class="form-label">Unggah Foto Slide</label>
                         <div class="file-upload-wrapper">
-                            <input type="file" id="gambar" name="gambar" accept="image/jpeg, image/png, image/webp"
-                                onchange="previewImage(event)" required>
+                            <input type="file" id="gambar" name="gambar" accept="image/jpeg, image/png, image/webp" required
+                                onchange="previewImage(event)">
                             <div class="file-upload-text" id="file-text">
-                                <i class="fa-solid fa-cloud-arrow-up"
+                                <i class="fa-solid fa-image"
                                     style="font-size: 2.5rem; display: block; margin-bottom: 10px; color: var(--primary);"></i>
-                                Klik atau seret gambar ke sini <br> <small>(Format JPG, PNG, WEBP)</small>
+                                Klik atau seret foto latar/banner ke sini <br> <small>(Resolusi terbaik 1920x1080 disarankan)</small>
                             </div>
                             <img id="preview-img" alt="Preview Image">
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="deskripsi" class="form-label">Deskripsi Kegiatan</label>
+                        <label for="deskripsi" class="form-label">Teks Deskripsi Pendek</label>
                         <textarea id="deskripsi" name="deskripsi" class="form-control"
-                            placeholder="Ceritakan detail foto kegiatan di sini..."
-                            required><?= isset($deskripsi) ? htmlspecialchars($deskripsi) : '' ?></textarea>
+                            placeholder="Meningkatkan partisipasi komunitas dalam kegiatan kami..."
+                            required></textarea>
                     </div>
 
-                    <button type="submit" class="btn-submit">Tambahkan ke Galeri</button>
-                    <a href="dashboard.php"
-                        style="color: var(--text-muted); text-decoration: none; margin-left: 20px;">Kembali</a>
+                    <div class="form-group">
+                        <label for="btn_link" class="form-label">Pilih Tujuan Tombol (Arahkan Halaman)</label>
+                        <select id="btn_link" name="btn_link" class="form-control" onchange="document.getElementById('btn_text').value = this.options[this.selectedIndex].text" required>
+                            <option value="" disabled selected>-- Pilih Daftar Halaman --</option>
+                            <option value="/Kaya Tene/index.php">Beranda (Home)</option>
+                            <option value="/Kaya Tene/index.php#tentang">Tentang Kami</option>
+                            <option value="/Kaya Tene/index.php#visi-misi">Visi & Misi</option>
+                            <option value="/Kaya Tene/views/berita.php">Berita Terkini</option>
+                            <option value="/Kaya Tene/views/Pendidikan.php">Program: Pendidikan</option>
+                            <option value="/Kaya Tene/views/Ekonomi.php">Program: Ekonomi</option>
+                            <option value="/Kaya Tene/views/Lingkungan%26Sosial.php">Program: Lingkungan & Sosial</option>
+                            <option value="/Kaya Tene/views/semua-galeri.php">Galeri Dokumentasi</option>
+                        </select>
+                        <!-- Hidden input to store the text automatically -->
+                        <input type="hidden" id="btn_text" name="btn_text" value="">
+                    </div>
+
+                    <button type="submit" class="btn-submit">Ubah Sekarang</button>
+                    <a href="carousel.php"
+                        style="color: var(--text-muted); text-decoration: none; margin-left: 20px;">Kembali ke Daftar</a>
                 </form>
             </div>
 

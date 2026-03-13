@@ -62,7 +62,7 @@ $tanggal = date('d F Y', strtotime($galeri['tanggal']));
             width: 100%;
             max-height: 600px;
             object-fit: contain;
-            background: #000;
+            background: var(--bg-dark);
             border-radius: 30px;
             margin-bottom: 50px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);

@@ -74,139 +74,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Tulis Berita - Yayasan Kaya Tene</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
-        .admin-layout {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        .sidebar {
-            width: 280px;
-            background: var(--bg-dark);
-            border-right: 1px solid var(--glass-border);
-            padding: 30px 20px;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-            z-index: 100;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .main-content {
-            flex-grow: 1;
-            margin-left: 280px;
-            padding: 40px;
-            background: var(--bg-darker);
-            min-height: 100vh;
-        }
-
-        .admin-logo {
-            font-size: 1.6rem;
-            margin-bottom: 50px;
-            display: block;
-            text-align: center;
-            font-weight: 800;
-        }
-
-        .nav-menu {
-            list-style: none;
-        }
-
-        .nav-menu li {
-            margin-bottom: 15px;
-        }
-
-        .nav-menu a {
-            display: flex;
-            align-items: center;
-            padding: 16px 20px;
-            color: var(--text-muted);
-            text-decoration: none;
-            border-radius: 16px;
-            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-            font-weight: 600;
-        }
-
-        .nav-menu a:hover,
-        .nav-menu a.active {
-            background: linear-gradient(135deg, rgba(255, 90, 0, 0.15), rgba(255, 183, 3, 0.15));
-            color: var(--primary);
-            box-shadow: 0 4px 15px rgba(255, 90, 0, 0.05);
-            transform: translateX(5px);
-        }
-
-        .nav-menu a i {
-            margin-right: 15px;
-            font-size: 1.3rem;
-            width: 20px;
-            text-align: center;
-        }
-
-        .dashboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 50px;
-        }
-
-        .header-title h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 5px;
-            background: linear-gradient(135deg, var(--text-main), var(--text-muted));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .admin-profile-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .admin-profile {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 8px 25px 8px 8px;
-            border-radius: 50px;
-            cursor: pointer;
-        }
-
-        .admin-avatar {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: white;
-            font-size: 1.2rem;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .theme-toggle-btn {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            border: 1px solid var(--glass-border);
-            background: var(--bg-card);
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .theme-toggle-btn:hover {
-            transform: scale(1.1);
-            color: var(--primary);
-            border-color: var(--primary);
-        }
 
         .form-container {
             border-radius: 20px;
@@ -330,49 +197,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             box-shadow: 0 10px 20px rgba(255, 107, 0, 0.4);
         }
 
-        @media (max-width: 992px) {
-            .sidebar {
-                width: 80px;
-                padding: 30px 10px;
-            }
 
-            .admin-logo span {
-                display: none;
-            }
-
-            .admin-logo {
-                font-size: 1rem;
-            }
-
-            .nav-menu a span {
-                display: none;
-            }
-
-            .nav-menu a {
-                padding: 15px;
-                justify-content: center;
-            }
-
-            .nav-menu a i {
-                margin-right: 0;
-            }
-
-            .main-content {
-                margin-left: 80px;
-                padding: 20px;
-            }
-
-            .dashboard-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 20px;
-            }
-
-            .admin-profile-wrapper {
-                width: 100%;
-                justify-content: space-between;
-            }
-        }
     </style>
 </head>
 
@@ -381,37 +206,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <div class="admin-layout">
         <!-- Sidebar -->
-        <aside class="sidebar">
-            <a href="../index.php" class="logo admin-logo"
-                style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
-                <img src="../Public/img/Logo_Yayasan-new.png" alt="Logo"
-                    style="height: 50px; transform: scale(1.5); margin-bottom: 10px;">
-                <div><span style="color: var(--primary);">Kaya</span>Tene</div>
-            </a>
-
-            <ul class="nav-menu">
-                <li>
-                    <a href="dashboard.php">
-                        <i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="tambah-berita.php" class="active">
-                        <i class="fa-solid fa-pen-to-square"></i> <span>Tulis Berita</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="../index.php" target="_blank">
-                        <i class="fa-solid fa-globe"></i> <span>Lihat Website</span>
-                    </a>
-                </li>
-                <li style="margin-top: 50px;">
-                    <a href="logout.php" style="color: #ff6b6b;">
-                        <i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span>
-                    </a>
-                </li>
-            </ul>
-        </aside>
+        <?php include 'partials/Sidebar.php'; ?>
 
         <!-- Main Content -->
         <main class="main-content">

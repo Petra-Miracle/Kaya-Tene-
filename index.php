@@ -1,5 +1,23 @@
 <?php
 require_once 'config/Connection.php';
+
+// Fetch dynamic carousel slides
+$carousel_sql = "SELECT * FROM Carousel ORDER BY id ASC";
+$carousel_result = $conn->query($carousel_sql);
+$db_slides = [];
+if ($carousel_result && $carousel_result->num_rows > 0) {
+    while ($row = $carousel_result->fetch_assoc()) {
+        $btn_text_display = !empty($row['btn_text']) ? $row['btn_text'] : 'Profil kami';
+        $btn_link_display = !empty($row['btn_link']) ? $row['btn_link'] : '#tentang';
+        $db_slides[] = [
+            'title' => $row['judul'],
+            'subtitle' => $row['deskripsi'],
+            'image' => 'uploads/' . $row['gambar'],
+            'btnText' => htmlspecialchars($btn_text_display) . ' <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i>',
+            'btnLink' => htmlspecialchars($btn_link_display)
+        ];
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -7,7 +25,7 @@ require_once 'config/Connection.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yayasan Kaya Tene - Seperti Kita, Seperti Perahu</title>
+    <title>Yayasan Kaya Tene - Bergerak Berdampak</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -16,21 +34,35 @@ require_once 'config/Connection.php';
 
     <?php include 'partials/Navbar.php'; ?>
 
-    <section class="hero" id="beranda">
+    <section class="hero" id="beranda" <?php if (empty($db_slides)) echo 'style="background-image: url(\'Public/img/hero-1.jpeg\');"'; ?>>
         <div class="hero-content-container">
+            <?php if (count($db_slides) > 1): ?>
             <button class="slider-arrow prev-arrow" onclick="changeSlide(-1)"><i
                     class="fa-solid fa-chevron-left"></i></button>
+            <?php endif; ?>
+            
             <div class="hero-content">
-                <h1 class="hero-title" id="slide-title">Selamat datang</h1>
-                <p class="hero-subtitle" id="slide-subtitle">Yayasan Kaya Tene - Seperti Kita, Seperti Perahu</p>
-                <div class="hero-actions">
-                    <a href="#tentang" class="btn btn-primary" style="padding-left: 35px; padding-right: 35px;"
-                        id="slide-link">Profil
-                        kami <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i></a>
-                </div>
+                <?php if (!empty($db_slides)): ?>
+                    <h1 class="hero-title" id="slide-title"><?php echo htmlspecialchars($db_slides[0]['title']); ?></h1>
+                    <p class="hero-subtitle" id="slide-subtitle"><?php echo htmlspecialchars($db_slides[0]['subtitle']); ?></p>
+                    <div class="hero-actions">
+                        <a href="<?php echo htmlspecialchars($db_slides[0]['btnLink']); ?>" class="btn btn-primary" style="padding-left: 35px; padding-right: 35px;"
+                            id="slide-link"><?php echo $db_slides[0]['btnText']; ?></a>
+                    </div>
+                <?php else: ?>
+                    <h1 class="hero-title" id="slide-title"></h1>
+                    <p class="hero-subtitle" id="slide-subtitle"></p>
+                    <div class="hero-actions" style="display: none;">
+                        <a href="#" class="btn btn-primary" style="padding-left: 35px; padding-right: 35px;"
+                            id="slide-link"></a>
+                    </div>
+                <?php endif; ?>
             </div>
+            
+            <?php if (count($db_slides) > 1): ?>
             <button class="slider-arrow next-arrow" onclick="changeSlide(1)"><i
                     class="fa-solid fa-chevron-right"></i></button>
+            <?php endif; ?>
         </div>
 
         <div class="slider-dots" id="slider-dots">
@@ -39,29 +71,14 @@ require_once 'config/Connection.php';
     </section>
 
     <script>
-        const slides = [
-            {
-                title: "Selamat datang",
-                subtitle: "Yayasan Kaya Tene - Seperti Kita, Seperti Perahu",
-                image: "Public/img/hero-1.jpeg",
-                btnText: 'Profil kami <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i>',
-                btnLink: "#tentang"
-            },
-            {
-                title: "Kemandirian Masyarakat",
-                subtitle: "Mendorong perekonomian lokal melalui pemberdayaan",
-                image: "Public/img/hero-2.jpeg",
-                btnText: 'Visi & Misi <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i>',
-                btnLink: "#visi-misi"
-            },
-            {
-                title: "Pendidikan Anak",
-                subtitle: "Meningkatkan kualitas dan karakter generasi penerus",
-                image: "Public/img/hero-3.jpeg",
-                btnText: 'Berita Terkini <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i>',
-                btnLink: "#berita"
-            }
-        ];
+        let slides = <?php echo json_encode($db_slides); ?>;
+        
+        if (slides.length === 0) {
+            // Hide navigation arrows if there are no dynamic slides
+            document.querySelectorAll('.slider-arrow').forEach(el => el.style.display = 'none');
+            // Set a default background image to avoid blank hero sections
+            document.getElementById('beranda').style.backgroundImage = "url('Public/img/hero-1.jpeg')";
+        }
 
         let currentSlide = 0;
         const heroSection = document.getElementById('beranda');
@@ -71,15 +88,26 @@ require_once 'config/Connection.php';
         const dotsContainer = document.getElementById('slider-dots');
 
         // Initialize dots
-        slides.forEach((_, index) => {
-            const dot = document.createElement('span');
-            dot.classList.add('dot');
-            if (index === 0) dot.classList.add('active');
-            dot.onclick = () => goToSlide(index);
-            dotsContainer.appendChild(dot);
-        });
+        if (slides.length > 0) {
+            slides.forEach((_, index) => {
+                const dot = document.createElement('span');
+                dot.classList.add('dot');
+                if (index === 0) dot.classList.add('active');
+                dot.onclick = () => goToSlide(index);
+                dotsContainer.appendChild(dot);
+            });
+
+            // Set the first slide content immediately
+            const firstSlide = slides[0];
+            heroSection.style.backgroundImage = `url('${firstSlide.image}')`;
+            slideTitle.innerHTML = firstSlide.title;
+            slideSubtitle.innerHTML = firstSlide.subtitle;
+            slideLink.innerHTML = firstSlide.btnText;
+            slideLink.href = firstSlide.btnLink;
+        }
 
         function updateSlide() {
+            if (slides.length === 0) return;
             const slide = slides[currentSlide];
 
             // Fade out text effect (optional enhancement)
@@ -119,9 +147,11 @@ require_once 'config/Connection.php';
         heroSection.style.transition = 'background-image 0.5s ease-in-out';
 
         // Auto slide
-        setInterval(() => {
-            changeSlide(1);
-        }, 5000);
+        if (slides.length > 1) {
+            setInterval(() => {
+                changeSlide(1);
+            }, 5000);
+        }
     </script>
 
     <section class="section" id="tentang">
@@ -153,6 +183,7 @@ require_once 'config/Connection.php';
             </div>
         </div>
     </section>
+
 
     <section class="section" id="visi-misi" style="background-color: var(--bg-card);">
         <div class="container">
@@ -227,6 +258,53 @@ require_once 'config/Connection.php';
     </section>
 
     <?php include 'views/galeri.php'; ?>
+
+    <section class="section" id="kontak" style="background-color: var(--bg-card);">
+        <div class="container">
+            <h2 class="section-title">Hubungi <span class="text-gradient">Kami</span></h2>
+            <div
+                style="text-align: center; max-width: 700px; margin: 0 auto 50px; color: var(--text-muted); font-size: 1.1rem;">
+                Mari berkolaborasi dan wujudkan perubahan bersama Yayasan Kaya Tene. Jangan ragu untuk menghubungi kami
+                melalui media di bawah ini.
+            </div>
+
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; text-align: center;">
+                <!-- WhatsApp -->
+                <a href="https://wa.me/6282341067389?text=Halo%20Admin%20Yayasan%20Kaya%20Tene%2C%20saya%20tertarik%20dan%20ingin%20bertanya%20lebih%20lanjut%20mengenai%20program%20yayasan."
+                    target="_blank" class="glass"
+                    style="padding: 40px 30px; border-radius: 20px; text-decoration: none; transition: transform 0.4s ease, box-shadow 0.4s ease;">
+                    <i class="fa-brands fa-whatsapp"
+                        style="font-size: 3.5rem; color: #25D366; margin-bottom: 20px; display: block;"></i>
+                    <h3 style="color: var(--text-main); margin-bottom: 10px; font-size: 1.5rem;">WhatsApp</h3>
+                    <p style="color: var(--text-muted); font-size: 1rem;">Chat langsung dengan admin kami untuk info
+                        lebih lanjut.</p>
+                </a>
+
+                <!-- Instagram -->
+                <a href="https://www.instagram.com/kaya_tene?igsh=MWJlYm15MXBhbzFzdA==" target="_blank" class="glass"
+                    style="padding: 40px 30px; border-radius: 20px; text-decoration: none; transition: transform 0.4s ease, box-shadow 0.4s ease;">
+                    <i class="fa-brands fa-instagram"
+                        style="font-size: 3.5rem; color: #E1306C; margin-bottom: 20px; display: block; background: -webkit-linear-gradient(#f09433, #e6683c, #dc2743, #cc2366, #bc1888); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                    <h3 style="color: var(--text-main); margin-bottom: 10px; font-size: 1.5rem;">Instagram</h3>
+                    <p style="color: var(--text-muted); font-size: 1rem;">Ikuti kegiatan dan update harian terbaru kami
+                        di Instagram.</p>
+                </a>
+
+                <!-- Email -->
+                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=yayasankayatene@gmail.com&su=Tanya%20Sistem%20Yayasan%20Kaya%20Tene&body=Halo%20Admin%20Kaya%20Tene,%0A%0ASaya%20ingin%20bertanya:"
+                    target="_blank" class="glass"
+                    style="padding: 40px 30px; border-radius: 20px; text-decoration: none; transition: transform 0.4s ease, box-shadow 0.4s ease;">
+                    <i class="fa-regular fa-envelope"
+                        style="font-size: 3.5rem; color: var(--primary); margin-bottom: 20px; display: block;"></i>
+                    <h3 style="color: var(--text-main); margin-bottom: 10px; font-size: 1.5rem;">Email</h3>
+                    <p style="color: var(--text-muted); font-size: 1rem;">Kirimkan tawaran kerjasama atau pertanyaan via
+                        email.</p>
+                </a>
+            </div>
+        </div>
+    </section>
+    <?php include 'views/Messages.php'; ?>
 
     <?php include 'partials/Footer.php'; ?>
 

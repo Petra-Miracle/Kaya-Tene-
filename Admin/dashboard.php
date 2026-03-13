@@ -35,7 +35,7 @@ if (isset($_GET['delete_id'])) {
 // Handle delete gallery request
 if (isset($_GET['delete_galeri_id'])) {
     $delete_galeri_id = intval($_GET['delete_galeri_id']);
-    // Optional: Fetch image name and delete from folder first
+    // Fetch image name and delete from folder first
     $stmt = $conn->prepare("SELECT gambar FROM Galeri WHERE id = ?");
     $stmt->bind_param("i", $delete_galeri_id);
     $stmt->execute();
@@ -53,6 +53,28 @@ if (isset($_GET['delete_galeri_id'])) {
     header("Location: dashboard.php?msg=galeri_deleted");
     exit();
 }
+
+// Handle delete program request
+if (isset($_GET['delete_program_id'])) {
+    $delete_program_id = intval($_GET['delete_program_id']);
+    // Fetch image name and delete from folder first
+    $stmt = $conn->prepare("SELECT gambar FROM Programs WHERE id = ?");
+    $stmt->bind_param("i", $delete_program_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+        if (!empty($row['gambar']) && file_exists("../uploads/" . $row['gambar'])) {
+            unlink("../uploads/" . $row['gambar']);
+        }
+    }
+
+    // Delete from DB
+    $stmt = $conn->prepare("DELETE FROM Programs WHERE id = ?");
+    $stmt->bind_param("i", $delete_program_id);
+    $stmt->execute();
+    header("Location: dashboard.php?msg=program_deleted");
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -63,140 +85,6 @@ if (isset($_GET['delete_galeri_id'])) {
     <title>Dashboard Admin - Yayasan Kaya Tene</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
-        .admin-layout {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        .sidebar {
-            width: 280px;
-            background: var(--bg-dark);
-            border-right: 1px solid var(--glass-border);
-            padding: 30px 20px;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-            z-index: 100;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .main-content {
-            flex-grow: 1;
-            margin-left: 280px;
-            padding: 40px;
-            background: var(--bg-darker);
-            min-height: 100vh;
-        }
-
-        .admin-logo {
-            font-size: 1.6rem;
-            margin-bottom: 50px;
-            display: block;
-            text-align: center;
-            font-weight: 800;
-        }
-
-        .nav-menu {
-            list-style: none;
-        }
-
-        .nav-menu li {
-            margin-bottom: 15px;
-        }
-
-        .nav-menu a {
-            display: flex;
-            align-items: center;
-            padding: 16px 20px;
-            color: var(--text-muted);
-            text-decoration: none;
-            border-radius: 16px;
-            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-            font-weight: 600;
-        }
-
-        .nav-menu a:hover,
-        .nav-menu a.active {
-            background: linear-gradient(135deg, rgba(255, 90, 0, 0.15), rgba(255, 183, 3, 0.15));
-            color: var(--primary);
-            box-shadow: 0 4px 15px rgba(255, 90, 0, 0.05);
-            transform: translateX(5px);
-        }
-
-        .nav-menu a i {
-            margin-right: 15px;
-            font-size: 1.3rem;
-            width: 20px;
-            text-align: center;
-        }
-
-        .dashboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 50px;
-        }
-
-        .header-title h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 5px;
-            background: linear-gradient(135deg, var(--text-main), var(--text-muted));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .admin-profile-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .admin-profile {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 8px 25px 8px 8px;
-            border-radius: 50px;
-            cursor: pointer;
-        }
-
-        .admin-avatar {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: white;
-            font-size: 1.2rem;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .theme-toggle-btn {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            border: 1px solid var(--glass-border);
-            background: var(--bg-card);
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .theme-toggle-btn:hover {
-            transform: scale(1.1);
-            color: var(--primary);
-            border-color: var(--primary);
-        }
-
         .stat-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -337,6 +225,20 @@ if (isset($_GET['delete_galeri_id'])) {
             transform: translateY(-2px);
         }
 
+        .btn-edit {
+            background: rgba(255, 183, 3, 0.1);
+            color: var(--secondary);
+            /* #FFB703 */
+            border: 1px solid rgba(255, 183, 3, 0.3);
+        }
+
+        .btn-edit:hover {
+            background: var(--secondary);
+            color: #fff;
+            box-shadow: 0 5px 15px rgba(255, 183, 3, 0.3);
+            transform: translateY(-2px);
+        }
+
         .alert-success {
             padding: 16px 20px;
             border-radius: 16px;
@@ -350,46 +252,10 @@ if (isset($_GET['delete_galeri_id'])) {
             gap: 10px;
         }
 
-        @media (max-width: 992px) {
-            .sidebar {
-                width: 80px;
-                padding: 30px 10px;
-            }
-
-            .admin-logo span {
-                display: none;
-            }
-
-            .admin-logo {
-                font-size: 1rem;
-            }
-
-            .nav-menu a span {
-                display: none;
-            }
-
-            .nav-menu a {
-                padding: 15px;
-                justify-content: center;
-            }
-
-            .nav-menu a i {
-                margin-right: 0;
-            }
-
-            .main-content {
-                margin-left: 80px;
-            }
-
-            .dashboard-header {
-                flex-direction: column;
-                align-items: flex-start;
+        @media (max-width: 768px) {
+            .stat-grid {
+                grid-template-columns: 1fr !important;
                 gap: 20px;
-            }
-
-            .admin-profile-wrapper {
-                width: 100%;
-                justify-content: space-between;
             }
         }
     </style>
@@ -400,42 +266,7 @@ if (isset($_GET['delete_galeri_id'])) {
 
     <div class="admin-layout">
         <!-- Sidebar -->
-        <aside class="sidebar">
-            <a href="../index.php" class="logo admin-logo"
-                style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
-                <img src="../Public/img/Logo_Yayasan-new.png" alt="Logo"
-                    style="height: 50px; transform: scale(1.5); margin-bottom: 10px;">
-                <div><span style="color: var(--primary);">Kaya</span>Tene</div>
-            </a>
-
-            <ul class="nav-menu">
-                <li>
-                    <a href="dashboard.php" class="active">
-                        <i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="tambah-berita.php">
-                        <i class="fa-solid fa-pen-to-square"></i> <span>Tulis Berita</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="tambah-galeri.php">
-                        <i class="fa-solid fa-images"></i> <span>Tambah Galeri</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="../index.php" target="_blank">
-                        <i class="fa-solid fa-globe"></i> <span>Lihat Website</span>
-                    </a>
-                </li>
-                <li style="margin-top: 50px;">
-                    <a href="logout.php" style="color: #ff6b6b;">
-                        <i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span>
-                    </a>
-                </li>
-            </ul>
-        </aside>
+        <?php include 'partials/Sidebar.php'; ?>
 
         <!-- Main Content -->
         <main class="main-content">
@@ -443,7 +274,8 @@ if (isset($_GET['delete_galeri_id'])) {
                 <div class="header-title">
                     <h1>Dashboard Admin</h1>
                     <p class="text-muted" style="font-size: 1.1rem;">Selamat datang kembali,
-                        <span style="color: var(--primary); font-weight: 600;"><?= htmlspecialchars($admin_name) ?>!</span>
+                        <span
+                            style="color: var(--primary); font-weight: 600;"><?= htmlspecialchars($admin_name) ?>!</span>
                     </p>
                 </div>
 
@@ -451,7 +283,7 @@ if (isset($_GET['delete_galeri_id'])) {
                     <button class="theme-toggle-btn" id="adminThemeToggle" title="Toggle Light/Dark Mode">
                         <i class="fa-solid fa-moon" id="adminThemeIcon"></i>
                     </button>
-                    
+
                     <div class="admin-profile glass">
                         <div class="admin-avatar">
                             <?= strtoupper(substr($admin_name, 0, 1)) ?>
@@ -471,6 +303,10 @@ if (isset($_GET['delete_galeri_id'])) {
                 <div class="alert-success">Foto Galeri berhasil dihapus secara permanen.</div>
             <?php endif; ?>
 
+            <?php if (isset($_GET['msg']) && $_GET['msg'] == 'program_deleted'): ?>
+                <div class="alert-success">Program berhasil dihapus secara permanen.</div>
+            <?php endif; ?>
+
             <?php
             // Calculate total news
             $count_query = $conn->query("SELECT COUNT(id) as total FROM Berita");
@@ -479,6 +315,18 @@ if (isset($_GET['delete_galeri_id'])) {
             // Calculate total gallery
             $count_gallery_query = $conn->query("SELECT COUNT(id) as total FROM Galeri");
             $total_gallery = $count_gallery_query ? $count_gallery_query->fetch_assoc()['total'] : 0;
+
+            // Calculate total pesan
+            $count_pesan_query = $conn->query("SELECT COUNT(id) as total FROM Pesan");
+            $total_pesan = $count_pesan_query ? $count_pesan_query->fetch_assoc()['total'] : 0;
+
+            // Calculate total pesan belum dibaca
+            $count_unread_query = $conn->query("SELECT COUNT(id) as total FROM Pesan WHERE status = 'belum dibaca'");
+            $total_unread = $count_unread_query ? $count_unread_query->fetch_assoc()['total'] : 0;
+
+            // Calculate total programs
+            $count_programs_query = $conn->query("SELECT COUNT(id) as total FROM Programs");
+            $total_programs = $count_programs_query ? $count_programs_query->fetch_assoc()['total'] : 0;
             ?>
 
             <div class="stat-grid">
@@ -488,112 +336,110 @@ if (isset($_GET['delete_galeri_id'])) {
                         <?= $total_news ?>
                     </div>
                 </div>
+                <div class="stat-card glass" style="border-left-color: #8c52ff;">
+                    <div class="stat-title">Total Program</div>
+                    <div class="stat-value" style="color: #8c52ff;">
+                        <?= $total_programs ?>
+                    </div>
+                </div>
                 <div class="stat-card glass" style="border-left-color: var(--secondary);">
                     <div class="stat-title">Total Foto Galeri</div>
                     <div class="stat-value">
                         <?= $total_gallery ?>
                     </div>
                 </div>
-            </div>
-
-            <div class="table-container glass">
-                <div class="table-header">
-                    <h2 style="font-size: 1.5rem;">Daftar Berita Terbaru</h2>
-                    <a href="tambah-berita.php" class="btn btn-primary btn-small" style="padding: 10px 20px;">+ Buat
-                        Berita Baru</a>
-                </div>
-
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Judul Berita</th>
-                                <th>Tanggal Publikasi</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            $sql = "SELECT id, judul, tanggal FROM Berita ORDER BY tanggal DESC LIMIT 5";
-                            $result = $conn->query($sql);
-
-                            if ($result && $result->num_rows > 0) {
-                                $no = 1;
-                                while ($row = $result->fetch_assoc()) {
-                                    $tanggal = date('d M Y, H:i', strtotime($row['tanggal']));
-                                    echo "<tr>
-                                            <td>{$no}</td>
-                                            <td style='font-weight: 500;'>" . htmlspecialchars($row['judul']) . "</td>
-                                            <td style='color: var(--text-muted);'>{$tanggal}</td>
-                                            <td>
-                                                <div class='action-btns'>
-                                                    <a href='../views/detail-berita.php?id={$row['id']}' target='_blank' class='btn btn-small glass' style='color: var(--text-main); border: 1px solid var(--glass-border);'>Lihat</a>
-                                                    <a href='dashboard.php?delete_id={$row['id']}' onclick=\"return confirm('Apakah Anda yakin ingin menghapus berita ini secara permanen?');\" class='btn btn-small btn-danger'>Hapus</a>
-                                                </div>
-                                            </td>
-                                          </tr>";
-                                    $no++;
-                                }
-                            } else {
-                                echo "<tr><td colspan='4' style='text-align: center; color: var(--text-muted); padding: 40px;'>Belum ada berita yang diterbitkan.</td></tr>";
-                            }
-                            ?>
-                        </tbody>
-                    </table>
+                <div class="stat-card glass" style="border-left-color: #25D366;">
+                    <div class="stat-title">Pesan Masuk (<?= $total_unread ?> Baru)</div>
+                    <div class="stat-value" style="<?= $total_unread > 0 ? 'color: #25D366;' : '' ?>">
+                        <?= $total_pesan ?>
+                    </div>
                 </div>
             </div>
 
-            <div class="table-container glass">
-                <div class="table-header">
-                    <h2 style="font-size: 1.5rem;">Daftar Foto Galeri</h2>
-                    <a href="tambah-galeri.php" class="btn btn-primary btn-small"
-                        style="background: linear-gradient(135deg, var(--secondary), var(--primary)); padding: 10px 20px;">+
-                        Tambah
-                        Foto Galeri</a>
+            <!-- Quick Management Shortcuts -->
+            <div class="header-title" style="margin: 40px 0 20px;">
+                <h2 style="font-size: 1.80rem; font-weight: 700; color: var(--text-main);">Manajemen Konten Cepat</h2>
+            </div>
+            
+            <div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-bottom: 40px;">
+                <!-- Berita Shortcut -->
+                <div class="stat-card glass" style="border-left: 5px solid var(--primary); padding: 30px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                        <div class="stat-icon" style="background: rgba(255, 90, 0, 0.1); color: var(--primary);">
+                            <i class="fa-solid fa-newspaper"></i>
+                        </div>
+                        <a href="tambah-berita.php" class="btn btn-small" style="background: var(--primary); color: white; border: none;">+ Tambah</a>
+                    </div>
+                    <h3 style="font-size: 1.25rem; margin-bottom: 10px;">Manajemen Berita</h3>
+                    <p class="text-muted" style="margin-bottom: 20px;">Lihat, edit, atau hapus semua berita yang telah dipublikasikan.</p>
+                    <a href="berita.php" class="btn glass" style="width: 100%; justify-content: center; color: var(--primary); font-weight: 700;">Ke Daftar Berita <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i></a>
                 </div>
 
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Foto</th>
-                                <th>Judul Kegiatan</th>
-                                <th>Tanggal</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            $sql_galeri = "SELECT id, gambar, judul, tanggal FROM Galeri ORDER BY id DESC LIMIT 5";
-                            $res_galeri = $conn->query($sql_galeri);
+                <!-- Program Shortcut -->
+                <div class="stat-card glass" style="border-left: 5px solid #8c52ff; padding: 30px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                        <div class="stat-icon" style="background: rgba(140, 82, 255, 0.1); color: #8c52ff;">
+                            <i class="fa-solid fa-hand-holding-heart"></i>
+                        </div>
+                        <a href="tambah-program.php" class="btn btn-small" style="background: #8c52ff; color: white; border: none;">+ Tambah</a>
+                    </div>
+                    <h3 style="font-size: 1.25rem; margin-bottom: 10px;">Manajemen Program</h3>
+                    <p class="text-muted" style="margin-bottom: 20px;">Kelola daftar program kerja yayasan di semua kategori.</p>
+                    <a href="program.php" class="btn glass" style="width: 100%; justify-content: center; color: #8c52ff; font-weight: 700;">Ke Daftar Program <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i></a>
+                </div>
 
-                            if ($res_galeri && $res_galeri->num_rows > 0) {
-                                $no = 1;
-                                while ($rowg = $res_galeri->fetch_assoc()) {
-                                    $tanggal_g = date('d M Y', strtotime($rowg['tanggal']));
-                                    $img_thumb = '/Kaya Tene/uploads/' . htmlspecialchars($rowg['gambar']);
-                                    echo "<tr>
-                                            <td>{$no}</td>
-                                            <td><img src='{$img_thumb}' alt='thumb' style='width: 60px; height: 40px; object-fit: cover; border-radius: 5px;'></td>
-                                            <td style='font-weight: 500;'>" . htmlspecialchars($rowg['judul']) . "</td>
-                                            <td style='color: var(--text-muted);'>{$tanggal_g}</td>
-                                            <td>
-                                                <div class='action-btns'>
-                                                    <a href='../views/detail-gallery.php?id={$rowg['id']}' target='_blank' class='btn btn-small glass' style='color: var(--text-main); border: 1px solid var(--glass-border);'>Lihat</a>
-                                                    <a href='dashboard.php?delete_galeri_id={$rowg['id']}' onclick=\"return confirm('Apakah Anda yakin ingin menghapus galeri ini secara permanen?');\" class='btn btn-small btn-danger'>Hapus</a>
-                                                </div>
-                                            </td>
-                                          </tr>";
-                                    $no++;
-                                }
-                            } else {
-                                echo "<tr><td colspan='5' style='text-align: center; color: var(--text-muted); padding: 40px;'>Belum ada galeri yang diunggah.</td></tr>";
-                            }
-                            ?>
-                        </tbody>
-                    </table>
+                <!-- Galeri Shortcut -->
+                <div class="stat-card glass" style="border-left: 5px solid var(--secondary); padding: 30px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                        <div class="stat-icon" style="background: rgba(255, 183, 3, 0.1); color: var(--secondary);">
+                            <i class="fa-solid fa-images"></i>
+                        </div>
+                        <a href="tambah-galeri.php" class="btn btn-small" style="background: var(--secondary); color: white; border: none;">+ Upload</a>
+                    </div>
+                    <h3 style="font-size: 1.25rem; margin-bottom: 10px;">Manajemen Galeri</h3>
+                    <p class="text-muted" style="margin-bottom: 20px;">Atur koleksi foto dokumentasi kegiatan dari lapangan.</p>
+                    <a href="galeri.php" class="btn glass" style="width: 100%; justify-content: center; color: var(--secondary); font-weight: 700;">Ke Daftar Galeri <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i></a>
+                </div>
+
+                <!-- Pesan Shortcut -->
+                <div class="stat-card glass" style="border-left: 5px solid #25D366; padding: 30px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                        <div class="stat-icon" style="background: rgba(37, 211, 102, 0.1); color: #25D366;">
+                            <i class="fa-solid fa-message"></i>
+                        </div>
+                        <?php if ($total_unread > 0): ?>
+                            <span class="badge-status badge-unread" style="margin: 0;"><?= $total_unread ?> Baru</span>
+                        <?php endif; ?>
+                    </div>
+                    <h3 style="font-size: 1.25rem; margin-bottom: 10px;">Pesan Masuk</h3>
+                    <p class="text-muted" style="margin-bottom: 20px;">Baca dan tanggapi pesan atau keluhan dari pengunjung website.</p>
+                    <a href="pesan.php" class="btn glass" style="width: 100%; justify-content: center; color: #25D366; font-weight: 700;">Buka Kotak Masuk <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i></a>
+                </div>
+
+                <!-- Carousel Shortcut -->
+                <div class="stat-card glass" style="border-left: 5px solid #00d2ff; padding: 30px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                        <div class="stat-icon" style="background: rgba(0, 210, 255, 0.1); color: #00d2ff;">
+                            <i class="fa-solid fa-desktop"></i>
+                        </div>
+                        <a href="tambah-carousel.php" class="btn btn-small" style="background: #00d2ff; color: white; border: none;">+ Tambah</a>
+                    </div>
+                    <h3 style="font-size: 1.25rem; margin-bottom: 10px;">Banner Desktop</h3>
+                    <p class="text-muted" style="margin-bottom: 20px;">Kelola slide gambar dan teks (carousel) di halaman beranda.</p>
+                    <a href="carousel.php" class="btn glass" style="width: 100%; justify-content: center; color: #00d2ff; font-weight: 700;">Atur Carousel <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i></a>
+                </div>
+
+                <!-- Struktural Shortcut -->
+                <div class="stat-card glass" style="border-left: 5px solid #ff4757; padding: 30px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                        <div class="stat-icon" style="background: rgba(255, 71, 87, 0.1); color: #ff4757;">
+                            <i class="fa-solid fa-sitemap"></i>
+                        </div>
+                        <a href="tambah-struktur.php" class="btn btn-small" style="background: #ff4757; color: white; border: none;">+ Tambah</a>
+                    </div>
+                    <h3 style="font-size: 1.25rem; margin-bottom: 10px;">Struktur Organisasi</h3>
+                    <p class="text-muted" style="margin-bottom: 20px;">Perbarui daftar pengurus dan struktur hierarki yayasan.</p>
+                    <a href="struktur-organisasi.php" class="btn glass" style="width: 100%; justify-content: center; color: #ff4757; font-weight: 700;">Kelola Pengurus <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i></a>
                 </div>
             </div>
 

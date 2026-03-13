@@ -82,7 +82,7 @@
         width: 100%;
         object-fit: cover;
         max-height: 50vh;
-        background: #000;
+        background: var(--bg-dark);
     }
 
     .gallery-modal-info {

@@ -14,11 +14,13 @@ $success = '';
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $judul = trim($_POST['judul']);
     $deskripsi = $_POST['deskripsi'];
-    $tanggal = date('Y-m-d'); // Current date
+    $kategori = $_POST['kategori'];
+    $tanggal = $_POST['tanggal'];
 
+    // Default image if no upload
     $gambar = '';
 
-    if (!empty($judul) && !empty($deskripsi)) {
+    if (!empty($judul) && !empty($deskripsi) && !empty($kategori) && !empty($tanggal)) {
         // Handle file upload
         if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
             $allowed_ext = ['jpg', 'jpeg', 'png', 'webp'];
@@ -28,7 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             if (in_array($file_ext, $allowed_ext)) {
                 // Create unique filename
-                $new_filename = uniqid() . '_galeri.' . $file_ext;
+                $new_filename = uniqid() . '.' . $file_ext;
                 $upload_path = '../uploads/';
 
                 // Create directory if not exists
@@ -39,31 +41,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 if (move_uploaded_file($file_tmp, $upload_path . $new_filename)) {
                     $gambar = $new_filename;
                 } else {
-                    $error = "Gagal mengunggah foto.";
+                    $error = "Gagal mengunggah gambar.";
                 }
             } else {
                 $error = "Format gambar tidak didukung. Gunakan JPG, PNG, atau WEBP.";
             }
         } else {
-            $error = "Foto Galeri wajib diunggah.";
+            $error = "Gambar program wajib diunggah.";
         }
 
-        if (empty($error) && !empty($gambar)) {
+        if (empty($error)) {
             // Insert into database
-            $stmt = $conn->prepare("INSERT INTO Galeri (judul, deskripsi, gambar, tanggal) VALUES (?, ?, ?, ?)");
-            $stmt->bind_param("ssss", $judul, $deskripsi, $gambar, $tanggal);
+            $stmt = $conn->prepare("INSERT INTO Programs (judul, deskripsi, gambar, kategori, tanggal) VALUES (?, ?, ?, ?, ?)");
+            $stmt->bind_param("sssss", $judul, $deskripsi, $gambar, $kategori, $tanggal);
 
             if ($stmt->execute()) {
-                $success = "Foto Galeri berhasil dipublikasikan!";
+                $success = "Program berhasil ditambahkan!";
                 // Clear fields
                 $judul = '';
                 $deskripsi = '';
+                $kategori = '';
+                $tanggal = '';
             } else {
-                $error = "Gagal mempublikasikan foto galeri: " . $conn->error;
+                $error = "Gagal menambahkan program: " . $conn->error;
             }
         }
     } else {
-        $error = "Judul dan Deskripsi wajib diisi.";
+        $error = "Semua field wajib diisi.";
     }
 }
 ?>
@@ -73,7 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tambah Galeri - Yayasan Kaya Tene</title>
+    <title>Tambah Program - Yayasan Kaya Tene</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
 
@@ -187,7 +191,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             font-size: 1.1rem;
             border-radius: 50px;
             margin-top: 10px;
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            background: linear-gradient(45deg, #8c52ff, #5e17eb);
             border: none;
             color: white;
             cursor: pointer;
@@ -196,9 +200,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         .btn-submit:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(255, 107, 0, 0.4);
+            box-shadow: 0 10px 20px rgba(140, 82, 255, 0.4);
         }
 
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
 
     </style>
 </head>
@@ -214,9 +229,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <main class="main-content">
             <div class="dashboard-header">
                 <div class="header-title">
-                    <h1>Tambah Galeri</h1>
-                    <p class="text-muted" style="font-size: 1.1rem;">Buat dan publikasikan foto kegiatan, seperti
-                        Agrokultur Kaya Tene.</p>
+                    <h1>Tambah Program</h1>
+                    <p class="text-muted" style="font-size: 1.1rem;">Tambahkan aktivitas program baru ke direktori yayasan.</p>
                 </div>
 
                 <div class="admin-profile-wrapper">
@@ -250,36 +264,55 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 <form method="POST" action="" enctype="multipart/form-data">
                     <div class="form-group">
-                        <label for="judul" class="form-label">Nama Kegiatan / Judul Foto</label>
+                        <label for="judul" class="form-label">Nama/Judul Program</label>
                         <input type="text" id="judul" name="judul" class="form-control"
-                            placeholder="Contoh: Agrokultur Kaya Tene..."
+                            placeholder="Contoh: Pemberian Beasiswa Semester 1..."
                             value="<?= isset($judul) ? htmlspecialchars($judul) : '' ?>" required>
                     </div>
 
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="kategori" class="form-label">Kategori Program</label>
+                            <select id="kategori" name="kategori" class="form-control" style="cursor: pointer;" required>
+                                <option value="" disabled selected>Pilih Kategori...</option>
+                                <option value="Pendidikan" <?= (isset($kategori) && $kategori === 'Pendidikan') ? 'selected' : '' ?>>Pendidikan</option>
+                                <option value="Ekonomi" <?= (isset($kategori) && $kategori === 'Ekonomi') ? 'selected' : '' ?>>Ekonomi</option>
+                                <option value="Sosial, Budaya & Publikasi" <?= (isset($kategori) && $kategori === 'Sosial, Budaya & Publikasi') ? 'selected' : '' ?>>Sosial, Budaya & Publikasi</option>
+                                <option value="Pertanian, Peternakan & Perikanan" <?= (isset($kategori) && $kategori === 'Pertanian, Peternakan & Perikanan') ? 'selected' : '' ?>>Pertanian, Peternakan & Perikanan</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tanggal" class="form-label">Tanggal Terlaksana</label>
+                            <input type="date" id="tanggal" name="tanggal" class="form-control" style="cursor: pointer;"
+                                value="<?= isset($tanggal) ? htmlspecialchars($tanggal) : '' ?>" required>
+                        </div>
+                    </div>
+
                     <div class="form-group">
-                        <label for="gambar" class="form-label">Unggah Foto Galeri</label>
+                        <label for="gambar" class="form-label">Foto Aktivitas Program</label>
                         <div class="file-upload-wrapper">
                             <input type="file" id="gambar" name="gambar" accept="image/jpeg, image/png, image/webp"
                                 onchange="previewImage(event)" required>
                             <div class="file-upload-text" id="file-text">
-                                <i class="fa-solid fa-cloud-arrow-up"
+                                <i class="fa-solid fa-camera-retro"
                                     style="font-size: 2.5rem; display: block; margin-bottom: 10px; color: var(--primary);"></i>
-                                Klik atau seret gambar ke sini <br> <small>(Format JPG, PNG, WEBP)</small>
+                                Klik atau seret foto ke sini <br> <small>(Format JPG, PNG, WEBP)</small>
                             </div>
                             <img id="preview-img" alt="Preview Image">
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="deskripsi" class="form-label">Deskripsi Kegiatan</label>
+                        <label for="deskripsi" class="form-label">Deskripsi Program</label>
                         <textarea id="deskripsi" name="deskripsi" class="form-control"
-                            placeholder="Ceritakan detail foto kegiatan di sini..."
+                            placeholder="Jelaskan detail aktivitas program ini..."
                             required><?= isset($deskripsi) ? htmlspecialchars($deskripsi) : '' ?></textarea>
                     </div>
 
-                    <button type="submit" class="btn-submit">Tambahkan ke Galeri</button>
+                    <button type="submit" class="btn-submit">Simpan Program</button>
                     <a href="dashboard.php"
-                        style="color: var(--text-muted); text-decoration: none; margin-left: 20px;">Kembali</a>
+                        style="color: var(--text-muted); text-decoration: none; margin-left: 20px;">Batal</a>
                 </form>
             </div>
 

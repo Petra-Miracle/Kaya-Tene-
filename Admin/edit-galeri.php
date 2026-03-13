@@ -8,17 +8,39 @@ if (!isset($_SESSION['admin_id'])) {
     exit();
 }
 
+if (!isset($_GET['id'])) {
+    header("Location: dashboard.php");
+    exit();
+}
+
+$id = intval($_GET['id']);
 $error = '';
 $success = '';
 
+// Fetch existing data
+$stmt = $conn->prepare("SELECT judul, deskripsi, gambar, tanggal FROM Galeri WHERE id = ?");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows === 0) {
+    header("Location: dashboard.php");
+    exit();
+}
+
+$galeri = $result->fetch_assoc();
+$judul = $galeri['judul'];
+$deskripsi = $galeri['deskripsi'];
+$gambar_lama = $galeri['gambar'];
+// Note: we can either keep the old date or update the date, usually editing keeps the old creation date
+// I will keep the old date.
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $judul = trim($_POST['judul']);
-    $deskripsi = $_POST['deskripsi'];
-    $tanggal = date('Y-m-d'); // Current date
+    $judul_baru = trim($_POST['judul']);
+    $deskripsi_baru = trim($_POST['deskripsi']);
+    $gambar_baru = $gambar_lama;
 
-    $gambar = '';
-
-    if (!empty($judul) && !empty($deskripsi)) {
+    if (!empty($judul_baru) && !empty($deskripsi_baru)) {
         // Handle file upload
         if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
             $allowed_ext = ['jpg', 'jpeg', 'png', 'webp'];
@@ -27,39 +49,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
 
             if (in_array($file_ext, $allowed_ext)) {
-                // Create unique filename
                 $new_filename = uniqid() . '_galeri.' . $file_ext;
                 $upload_path = '../uploads/';
 
-                // Create directory if not exists
                 if (!is_dir($upload_path)) {
                     mkdir($upload_path, 0777, true);
                 }
 
                 if (move_uploaded_file($file_tmp, $upload_path . $new_filename)) {
-                    $gambar = $new_filename;
+                    $gambar_baru = $new_filename;
+                    
+                    // Delete old image if it exists
+                    if (!empty($gambar_lama) && file_exists($upload_path . $gambar_lama)) {
+                        unlink($upload_path . $gambar_lama);
+                    }
                 } else {
-                    $error = "Gagal mengunggah foto.";
+                    $error = "Gagal mengunggah foto baru.";
                 }
             } else {
                 $error = "Format gambar tidak didukung. Gunakan JPG, PNG, atau WEBP.";
             }
-        } else {
-            $error = "Foto Galeri wajib diunggah.";
         }
 
-        if (empty($error) && !empty($gambar)) {
-            // Insert into database
-            $stmt = $conn->prepare("INSERT INTO Galeri (judul, deskripsi, gambar, tanggal) VALUES (?, ?, ?, ?)");
-            $stmt->bind_param("ssss", $judul, $deskripsi, $gambar, $tanggal);
+        if (empty($error)) {
+            // Update into database
+            $stmt = $conn->prepare("UPDATE Galeri SET judul = ?, deskripsi = ?, gambar = ? WHERE id = ?");
+            $stmt->bind_param("sssi", $judul_baru, $deskripsi_baru, $gambar_baru, $id);
 
             if ($stmt->execute()) {
-                $success = "Foto Galeri berhasil dipublikasikan!";
-                // Clear fields
-                $judul = '';
-                $deskripsi = '';
+                $success = "Foto Galeri berhasil diperbarui!";
+                // Update local variables for form reflection
+                $judul = $judul_baru;
+                $deskripsi = $deskripsi_baru;
+                $gambar_lama = $gambar_baru;
             } else {
-                $error = "Gagal mempublikasikan foto galeri: " . $conn->error;
+                $error = "Gagal memperbarui galeri: " . $conn->error;
             }
         }
     } else {
@@ -73,10 +97,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tambah Galeri - Yayasan Kaya Tene</title>
+    <title>Edit Galeri - Yayasan Kaya Tene</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
-
         .form-container {
             border-radius: 20px;
             padding: 40px;
@@ -214,9 +237,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <main class="main-content">
             <div class="dashboard-header">
                 <div class="header-title">
-                    <h1>Tambah Galeri</h1>
-                    <p class="text-muted" style="font-size: 1.1rem;">Buat dan publikasikan foto kegiatan, seperti
-                        Agrokultur Kaya Tene.</p>
+                    <h1>Edit Foto Galeri</h1>
+                    <p class="text-muted" style="font-size: 1.1rem;">Ubah rincian kegiatan atau perbarui foto pada dokumentasi galeri.</p>
                 </div>
 
                 <div class="admin-profile-wrapper">
@@ -253,20 +275,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <label for="judul" class="form-label">Nama Kegiatan / Judul Foto</label>
                         <input type="text" id="judul" name="judul" class="form-control"
                             placeholder="Contoh: Agrokultur Kaya Tene..."
-                            value="<?= isset($judul) ? htmlspecialchars($judul) : '' ?>" required>
+                            value="<?= htmlspecialchars($judul) ?>" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="gambar" class="form-label">Unggah Foto Galeri</label>
+                        <label for="gambar" class="form-label">Unggah Foto Galeri Baru (Opsional)</label>
                         <div class="file-upload-wrapper">
                             <input type="file" id="gambar" name="gambar" accept="image/jpeg, image/png, image/webp"
-                                onchange="previewImage(event)" required>
-                            <div class="file-upload-text" id="file-text">
+                                onchange="previewImage(event)">
+                            <div class="file-upload-text" id="file-text" style="<?= !empty($gambar_lama) ? 'display: none;' : '' ?>">
                                 <i class="fa-solid fa-cloud-arrow-up"
                                     style="font-size: 2.5rem; display: block; margin-bottom: 10px; color: var(--primary);"></i>
-                                Klik atau seret gambar ke sini <br> <small>(Format JPG, PNG, WEBP)</small>
+                                Klik atau seret foto baru ke sini <br> <small>(Format JPG, PNG, WEBP)</small>
                             </div>
-                            <img id="preview-img" alt="Preview Image">
+                            <?php if (!empty($gambar_lama)): ?>
+                                <img id="preview-img" src="../uploads/<?= htmlspecialchars($gambar_lama) ?>" alt="Preview Image" style="display: block;">
+                            <?php else: ?>
+                                <img id="preview-img" alt="Preview Image">
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -274,10 +300,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <label for="deskripsi" class="form-label">Deskripsi Kegiatan</label>
                         <textarea id="deskripsi" name="deskripsi" class="form-control"
                             placeholder="Ceritakan detail foto kegiatan di sini..."
-                            required><?= isset($deskripsi) ? htmlspecialchars($deskripsi) : '' ?></textarea>
+                            required><?= htmlspecialchars($deskripsi) ?></textarea>
                     </div>
 
-                    <button type="submit" class="btn-submit">Tambahkan ke Galeri</button>
+                    <button type="submit" class="btn-submit">Simpan Perubahan</button>
                     <a href="dashboard.php"
                         style="color: var(--text-muted); text-decoration: none; margin-left: 20px;">Kembali</a>
                 </form>
@@ -301,9 +327,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
                 reader.readAsDataURL(file);
             } else {
-                preview.src = '';
-                preview.style.display = 'none';
-                text.style.display = 'block';
+                <?php if(!empty($gambar_lama)): ?>
+                    preview.src = '../uploads/<?= htmlspecialchars($gambar_lama) ?>';
+                    preview.style.display = 'block';
+                    text.style.display = 'none';
+                <?php else: ?>
+                    preview.src = '';
+                    preview.style.display = 'none';
+                    text.style.display = 'block';
+                <?php endif; ?>
             }
         }
 

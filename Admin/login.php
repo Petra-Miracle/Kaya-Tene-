@@ -57,12 +57,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         .login-card {
-            width: 100%;
+            width: 90%;
             max-width: 450px;
             padding: 40px;
             border-radius: 20px;
             text-align: center;
             border-top: 4px solid var(--primary);
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 30px 20px;
+            }
+            .floating-toggle {
+                top: 20px;
+                right: 20px;
+            }
         }
 
         .form-group {
@@ -205,8 +215,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <button type="submit" class="btn btn-primary login-btn">Masuk ke Dashboard</button>
         </form>
-
-        <a href="daftar.php" class="register-link">Belum punya akun admin? Daftar di sini</a>
     </div>
 
     <script>

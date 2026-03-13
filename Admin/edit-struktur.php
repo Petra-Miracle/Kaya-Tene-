@@ -8,17 +8,39 @@ if (!isset($_SESSION['admin_id'])) {
     exit();
 }
 
+if (!isset($_GET['id'])) {
+    header("Location: struktur-organisasi.php");
+    exit();
+}
+
+$id = intval($_GET['id']);
 $error = '';
 $success = '';
 
+// Fetch existing data
+$stmt = $conn->prepare("SELECT nama, jabatan, gambar, tanggal FROM Struktur_Organisasi WHERE id = ?");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows === 0) {
+    header("Location: struktur-organisasi.php");
+    exit();
+}
+
+$org = $result->fetch_assoc();
+$nama = $org['nama'];
+$jabatan = $org['jabatan'];
+$gambar_lama = $org['gambar'];
+$tanggal = $org['tanggal'];
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $judul = trim($_POST['judul']);
-    $deskripsi = $_POST['deskripsi'];
-    $tanggal = date('Y-m-d'); // Current date
+    $nama_baru = trim($_POST['nama']);
+    $jabatan_baru = trim($_POST['jabatan']);
+    $tanggal_baru = $_POST['tanggal'];
+    $gambar_baru = $gambar_lama;
 
-    $gambar = '';
-
-    if (!empty($judul) && !empty($deskripsi)) {
+    if (!empty($nama_baru) && !empty($jabatan_baru) && !empty($tanggal_baru)) {
         // Handle file upload
         if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] == 0) {
             $allowed_ext = ['jpg', 'jpeg', 'png', 'webp'];
@@ -27,43 +49,45 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
 
             if (in_array($file_ext, $allowed_ext)) {
-                // Create unique filename
-                $new_filename = uniqid() . '_galeri.' . $file_ext;
+                $new_filename = uniqid() . '.' . $file_ext;
                 $upload_path = '../uploads/';
 
-                // Create directory if not exists
                 if (!is_dir($upload_path)) {
                     mkdir($upload_path, 0777, true);
                 }
 
                 if (move_uploaded_file($file_tmp, $upload_path . $new_filename)) {
-                    $gambar = $new_filename;
+                    $gambar_baru = $new_filename;
+                    
+                    // Delete old image if it exists
+                    if (!empty($gambar_lama) && file_exists($upload_path . $gambar_lama)) {
+                        unlink($upload_path . $gambar_lama);
+                    }
                 } else {
-                    $error = "Gagal mengunggah foto.";
+                    $error = "Gagal mengunggah profil baru.";
                 }
             } else {
-                $error = "Format gambar tidak didukung. Gunakan JPG, PNG, atau WEBP.";
+                $error = "Format foto tidak didukung. Gunakan JPG, PNG, atau WEBP.";
             }
-        } else {
-            $error = "Foto Galeri wajib diunggah.";
         }
 
-        if (empty($error) && !empty($gambar)) {
-            // Insert into database
-            $stmt = $conn->prepare("INSERT INTO Galeri (judul, deskripsi, gambar, tanggal) VALUES (?, ?, ?, ?)");
-            $stmt->bind_param("ssss", $judul, $deskripsi, $gambar, $tanggal);
+        if (empty($error)) {
+            // Update into database
+            $stmt = $conn->prepare("UPDATE Struktur_Organisasi SET nama = ?, jabatan = ?, gambar = ?, tanggal = ? WHERE id = ?");
+            $stmt->bind_param("ssssi", $nama_baru, $jabatan_baru, $gambar_baru, $tanggal_baru, $id);
 
             if ($stmt->execute()) {
-                $success = "Foto Galeri berhasil dipublikasikan!";
-                // Clear fields
-                $judul = '';
-                $deskripsi = '';
+                $success = "Profil anggota berhasil diperbarui!";
+                $nama = $nama_baru;
+                $jabatan = $jabatan_baru;
+                $gambar_lama = $gambar_baru;
+                $tanggal = $tanggal_baru;
             } else {
-                $error = "Gagal mempublikasikan foto galeri: " . $conn->error;
+                $error = "Gagal memperbarui profil: " . $conn->error;
             }
         }
     } else {
-        $error = "Judul dan Deskripsi wajib diisi.";
+        $error = "Semua field wajib diisi.";
     }
 }
 ?>
@@ -73,10 +97,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tambah Galeri - Yayasan Kaya Tene</title>
+    <title>Edit Struktur Organisasi - Yayasan Kaya Tene</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
-
         .form-container {
             border-radius: 20px;
             padding: 40px;
@@ -109,12 +132,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .form-control:focus {
             outline: none;
             border-color: var(--primary);
-        }
-
-        textarea.form-control {
-            resize: vertical;
-            min-height: 200px;
-            font-family: inherit;
         }
 
         /* File Upload Styling */
@@ -159,7 +176,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            background-color: rgba(0,0,0,0.5);
             display: none;
             z-index: 1;
         }
@@ -187,7 +205,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             font-size: 1.1rem;
             border-radius: 50px;
             margin-top: 10px;
-            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            background: linear-gradient(45deg, var(--secondary), var(--primary-dark));
             border: none;
             color: white;
             cursor: pointer;
@@ -196,10 +214,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         .btn-submit:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(255, 107, 0, 0.4);
+            box-shadow: 0 10px 20px rgba(255, 183, 3, 0.4);
         }
 
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
 
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 
@@ -214,9 +242,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <main class="main-content">
             <div class="dashboard-header">
                 <div class="header-title">
-                    <h1>Tambah Galeri</h1>
-                    <p class="text-muted" style="font-size: 1.1rem;">Buat dan publikasikan foto kegiatan, seperti
-                        Agrokultur Kaya Tene.</p>
+                    <h1>Edit Anggota</h1>
+                    <p class="text-muted" style="font-size: 1.1rem;">Perbarui informasi atau profil anggota organisasi.</p>
                 </div>
 
                 <div class="admin-profile-wrapper">
@@ -250,35 +277,47 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 <form method="POST" action="" enctype="multipart/form-data">
                     <div class="form-group">
-                        <label for="judul" class="form-label">Nama Kegiatan / Judul Foto</label>
-                        <input type="text" id="judul" name="judul" class="form-control"
-                            placeholder="Contoh: Agrokultur Kaya Tene..."
-                            value="<?= isset($judul) ? htmlspecialchars($judul) : '' ?>" required>
+                        <label for="nama" class="form-label">Nama Lengkap</label>
+                        <input type="text" id="nama" name="nama" class="form-control"
+                            placeholder="Contoh: John Doe S.E..."
+                            value="<?= htmlspecialchars($nama) ?>" required>
                     </div>
 
-                    <div class="form-group">
-                        <label for="gambar" class="form-label">Unggah Foto Galeri</label>
-                        <div class="file-upload-wrapper">
-                            <input type="file" id="gambar" name="gambar" accept="image/jpeg, image/png, image/webp"
-                                onchange="previewImage(event)" required>
-                            <div class="file-upload-text" id="file-text">
-                                <i class="fa-solid fa-cloud-arrow-up"
-                                    style="font-size: 2.5rem; display: block; margin-bottom: 10px; color: var(--primary);"></i>
-                                Klik atau seret gambar ke sini <br> <small>(Format JPG, PNG, WEBP)</small>
-                            </div>
-                            <img id="preview-img" alt="Preview Image">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="jabatan" class="form-label">Jabatan</label>
+                            <input type="text" id="jabatan" name="jabatan" class="form-control"
+                                placeholder="Contoh: Ketua Yayasan..."
+                                value="<?= htmlspecialchars($jabatan) ?>" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tanggal" class="form-label">Tanggal Efektif/Bergabung</label>
+                            <input type="date" id="tanggal" name="tanggal" class="form-control" style="cursor: pointer;"
+                                value="<?= htmlspecialchars($tanggal) ?>" required>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="deskripsi" class="form-label">Deskripsi Kegiatan</label>
-                        <textarea id="deskripsi" name="deskripsi" class="form-control"
-                            placeholder="Ceritakan detail foto kegiatan di sini..."
-                            required><?= isset($deskripsi) ? htmlspecialchars($deskripsi) : '' ?></textarea>
+                        <label for="gambar" class="form-label">Ganti Foto Profil (Biarkan kosong jika tidak diubah)</label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="gambar" name="gambar" accept="image/jpeg, image/png, image/webp"
+                                onchange="previewImage(event)">
+                            <div class="file-upload-text" id="file-text" style="<?= !empty($gambar_lama) ? 'display: none;' : '' ?>">
+                                <i class="fa-solid fa-user-tie"
+                                    style="font-size: 2.5rem; display: block; margin-bottom: 10px; color: var(--primary);"></i>
+                                Klik atau seret gambar baru ke sini <br> <small>(Format JPG, PNG, WEBP)</small>
+                            </div>
+                            <?php if (!empty($gambar_lama)): ?>
+                                <img id="preview-img" src="../uploads/<?= htmlspecialchars($gambar_lama) ?>" alt="Preview Profil" style="display: block;">
+                            <?php else: ?>
+                                <img id="preview-img" alt="Preview Profil">
+                            <?php endif; ?>
+                        </div>
                     </div>
 
-                    <button type="submit" class="btn-submit">Tambahkan ke Galeri</button>
-                    <a href="dashboard.php"
+                    <button type="submit" class="btn-submit">Simpan Perubahan</button>
+                    <a href="struktur-organisasi.php"
                         style="color: var(--text-muted); text-decoration: none; margin-left: 20px;">Kembali</a>
                 </form>
             </div>
@@ -301,9 +340,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
                 reader.readAsDataURL(file);
             } else {
-                preview.src = '';
-                preview.style.display = 'none';
-                text.style.display = 'block';
+                <?php if(!empty($gambar_lama)): ?>
+                    preview.src = '../uploads/<?= htmlspecialchars($gambar_lama) ?>';
+                    preview.style.display = 'block';
+                    text.style.display = 'none';
+                <?php else: ?>
+                    preview.src = '';
+                    preview.style.display = 'none';
+                    text.style.display = 'block';
+                <?php endif; ?>
             }
         }
 
