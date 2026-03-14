@@ -39,73 +39,74 @@ if (isset($_GET['read_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pesan Publik - Administrator Yayasan Kaya Tene</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-
         .table-container {
-            border-radius: 24px;
-            padding: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 35px;
             margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
 
         .table-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
+        }
+
+        .table-header h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -1px;
         }
 
         table {
             width: 100%;
             border-collapse: separate;
-            border-spacing: 0 10px;
-        }
-
-        th,
-        td {
-            padding: 20px;
-            text-align: left;
+            border-spacing: 0 12px;
         }
 
         th {
             color: var(--text-muted);
-            font-weight: 700;
+            font-weight: 800;
             text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 1.5px;
-            border-bottom: 2px solid var(--glass-border);
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            padding: 0 20px 10px;
+            opacity: 0.6;
         }
 
         td {
             color: var(--text-main);
-            background: var(--bg-card);
-            border-top: 1px solid var(--glass-highlight);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            vertical-align: top;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 24px 20px;
+            border-top: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border);
+            vertical-align: middle;
+            transition: all 0.3s ease;
         }
 
+        body.light-mode td { background: rgba(0, 0, 0, 0.01); }
+
         td:first-child {
-            border-top-left-radius: 16px;
-            border-bottom-left-radius: 16px;
-            border-left: 1px solid var(--glass-highlight);
+            border-top-left-radius: 18px;
+            border-bottom-left-radius: 18px;
+            border-left: 1px solid var(--glass-border);
         }
 
         td:last-child {
-            border-top-right-radius: 16px;
-            border-bottom-right-radius: 16px;
-            border-right: 1px solid rgba(0, 0, 0, 0.2);
+            border-top-right-radius: 18px;
+            border-bottom-right-radius: 18px;
+            border-right: 1px solid var(--glass-border);
         }
 
-        tr {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        tbody tr:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-sm);
-        }
-
-        tbody tr:hover td {
+        tr:hover td {
             background: rgba(255, 90, 0, 0.05);
+            border-color: rgba(255, 90, 0, 0.2);
         }
 
         .action-btns {
@@ -115,48 +116,46 @@ if (isset($_GET['read_id'])) {
         }
 
         .btn-small {
-            padding: 8px 18px;
-            font-size: 0.9rem;
-            border-radius: 10px;
+            height: 42px;
+            padding: 0 20px;
+            font-size: 0.88rem;
+            border-radius: 12px;
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 700;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            gap: 8px;
         }
 
         .btn-unread {
-            background: rgba(46, 213, 115, 0.1);
-            color: #2ed573;
-            border: 1px solid rgba(46, 213, 115, 0.3);
+            background: rgba(37, 211, 102, 0.1);
+            color: #25D366;
+            border: 1px solid rgba(37, 211, 102, 0.2);
         }
 
         .btn-unread:hover {
-            background: #2ed573;
+            background: #25D366;
             color: #fff;
-            box-shadow: 0 5px 15px rgba(46, 213, 115, 0.3);
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(37, 211, 102, 0.2);
         }
 
         .btn-danger {
-            background: rgba(220, 53, 69, 0.1);
+            background: rgba(255, 71, 87, 0.1);
             color: #ff4757;
-            border: 1px solid rgba(220, 53, 69, 0.2);
+            border: 1px solid rgba(255, 71, 87, 0.2);
         }
 
         .btn-danger:hover {
             background: #ff4757;
             color: white;
-            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.3);
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 71, 87, 0.2);
         }
 
         .badge-status {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
             font-weight: 600;
             text-transform: uppercase;
         }

@@ -12,7 +12,7 @@ $loader_img_path = '/Kaya Tene/Public/img/Logo_Yayasan-new.png';
     // Failsafe: forcibly hide loader after a short timeout if it gets stuck
     const forceHideTimeout = setTimeout(() => {
         hideLoader();
-    }, 1500); // 1.5 seconds is usually enough for a modern feel
+    }, 800); // Reduced to 800ms for faster perceived loading
 
     function hideLoader() {
         clearTimeout(forceHideTimeout);

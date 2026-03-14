@@ -10,6 +10,7 @@ require_once '../config/Connection.php';
     <title>Berita Terkini - Yayasan Kaya Tene</title>
     <link rel="stylesheet" href="/Kaya Tene/css/style.css">
     <link rel="stylesheet" href="/Kaya Tene/css/berita.css">
+    <?php include '../partials/HeaderAssets.php'; ?>
 </head>
 
 <body>

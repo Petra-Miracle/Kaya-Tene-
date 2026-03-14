@@ -9,6 +9,7 @@ http_response_code(404);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>404 Halaman Tidak Ditemukan - Yayasan Kaya Tene</title>
     <link rel="stylesheet" href="css/style.css">
+    <?php include 'partials/HeaderAssets.php'; ?>
     <style>
         .error-container {
             min-height: 100vh;

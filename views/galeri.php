@@ -8,7 +8,7 @@
         <div class="gallery-grid"
             style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
             <?php
-            // Fetch latest gallery photos
+            // Fetch latest gallery photos - optimized query with specific columns only
             $sql_galeri = "SELECT id, judul, deskripsi, gambar, tanggal FROM Galeri ORDER BY id DESC LIMIT 6";
             $res_galeri = $conn->query($sql_galeri);
 
@@ -19,7 +19,7 @@
                     $tanggal = date('d M Y', strtotime($rowg['tanggal']));
                     echo '
                     <div class="gallery-item glass" data-id="' . $rowg['id'] . '" data-img="' . $img_src . '" data-title="' . $title . '" data-desc="' . htmlspecialchars($rowg['deskripsi']) . '" data-date="' . $tanggal . '" onclick="openGalleryModal(this)" style="border-radius: 15px; overflow: hidden; position: relative; cursor: pointer;">
-                        <img src="' . $img_src . '" alt="' . $title . '" style="width: 100%; height: 250px; object-fit: cover; display: block; transition: transform 0.5s ease;">
+                        <img src="' . $img_src . '" alt="' . $title . '" loading="lazy" style="width: 100%; height: 250px; object-fit: cover; display: block; transition: transform 0.5s ease;">
                         <div class="gallery-overlay" style="position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); padding: 30px 20px 20px; text-align: left; transition: opacity 0.3s; opacity: 0.9;">
                             <h4 style="color: white; margin-bottom: 5px; font-size: 1.2rem;">' . $title . '</h4>
                             <p style="color: var(--primary-light); font-size: 0.9rem; margin: 0;"><i class="fa-regular fa-calendar" style="margin-right: 5px;"></i>' . $tanggal . '</p>

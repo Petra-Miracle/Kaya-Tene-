@@ -16,6 +16,7 @@ $program_result = $stmt->get_result();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Program Pendidikan - Yayasan Kaya Tene</title>
     <link rel="stylesheet" href="../css/style.css">
+    <?php include '../partials/HeaderAssets.php'; ?>
     <style>
         .page-header {
             padding: 180px 0 100px;

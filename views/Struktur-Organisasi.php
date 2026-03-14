@@ -9,6 +9,7 @@ require_once '../config/Connection.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Struktur Organisasi - Yayasan Kaya Tene</title>
     <link rel="stylesheet" href="../css/style.css">
+    <?php include '../partials/HeaderAssets.php'; ?>
 </head>
 
 <body>
@@ -23,9 +24,13 @@ require_once '../config/Connection.php';
                 <?php
                 $sql_org = "SELECT nama, jabatan, gambar FROM Struktur_Organisasi ORDER BY id ASC";
                 $result_org = $conn->query($sql_org);
-                
+
                 $orgs = [];
-                if ($result_org && $result_org->num_rows > 0) {
+                $query_error = '';
+                if ($result_org === false) {
+                    $query_error = $conn->error;
+                    error_log("Struktur Organisasi query failed: {$query_error}");
+                } elseif ($result_org->num_rows > 0) {
                     while ($org = $result_org->fetch_assoc()) {
                         $orgs[] = $org;
                     }

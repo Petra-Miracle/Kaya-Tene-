@@ -35,129 +35,138 @@ if (isset($_GET['delete_id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Struktur Organisasi - Yayasan Kaya Tene</title>
+    <title>Struktur Organisasi - Administrator</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="partials/Sidebar.css">
     <style>
         .table-container {
-            border-radius: 24px;
-            padding: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 35px;
             margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
 
         .table-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
+        }
+
+        .table-header h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -1px;
         }
 
         table {
             width: 100%;
             border-collapse: separate;
-            border-spacing: 0 10px;
-        }
-
-        th, td {
-            padding: 20px;
-            text-align: left;
+            border-spacing: 0 12px;
         }
 
         th {
             color: var(--text-muted);
-            font-weight: 700;
+            font-weight: 800;
             text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 1.5px;
-            border-bottom: 2px solid var(--glass-border);
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            padding: 0 20px 10px;
+            opacity: 0.6;
         }
 
         td {
             color: var(--text-main);
-            background: var(--bg-card);
-            border-top: 1px solid var(--glass-highlight);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.02);
+            padding: 20px;
+            border-top: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border);
+            vertical-align: middle;
         }
 
+        body.light-mode td { background: rgba(0, 0, 0, 0.01); }
+
         td:first-child {
-            border-top-left-radius: 16px;
-            border-bottom-left-radius: 16px;
-            border-left: 1px solid var(--glass-highlight);
+            border-top-left-radius: 18px;
+            border-bottom-left-radius: 18px;
+            border-left: 1px solid var(--glass-border);
         }
 
         td:last-child {
-            border-top-right-radius: 16px;
-            border-bottom-right-radius: 16px;
-            border-right: 1px solid rgba(0, 0, 0, 0.2);
+            border-top-right-radius: 18px;
+            border-bottom-right-radius: 18px;
+            border-right: 1px solid var(--glass-border);
         }
 
-        tbody tr {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        tbody tr:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-sm);
-        }
-
-        tbody tr:hover td {
+        tr:hover td {
             background: rgba(255, 90, 0, 0.05);
+            border-color: rgba(255, 90, 0, 0.2);
+        }
+
+        .member-thumb {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            box-shadow: 0 4px 10px rgba(255, 90, 0, 0.2);
         }
 
         .action-btns {
             display: flex;
-            gap: 12px;
+            gap: 10px;
         }
 
         .btn-small {
-            padding: 8px 18px;
-            font-size: 0.9rem;
-            border-radius: 10px;
+            height: 40px;
+            padding: 0 18px;
+            font-size: 0.88rem;
+            border-radius: 12px;
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 700;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s;
-        }
-
-        .btn-danger {
-            background: rgba(220, 53, 69, 0.1);
-            color: #ff4757;
-            border: 1px solid rgba(220, 53, 69, 0.2);
-        }
-
-        .btn-danger:hover {
-            background: #ff4757;
-            color: white;
-            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.3);
-            transform: translateY(-2px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            gap: 8px;
         }
 
         .btn-edit {
             background: rgba(255, 183, 3, 0.1);
             color: var(--secondary);
-            border: 1px solid rgba(255, 183, 3, 0.3);
+            border: 1px solid rgba(255, 183, 3, 0.2);
         }
 
-        .btn-edit:hover {
-            background: var(--secondary);
-            color: #fff;
-            box-shadow: 0 5px 15px rgba(255, 183, 3, 0.3);
-            transform: translateY(-2px);
+        .btn-danger {
+            background: rgba(255, 71, 87, 0.1);
+            color: #ff4757;
+            border: 1px solid rgba(255, 71, 87, 0.2);
         }
+
+        .btn-edit:hover, .btn-danger:hover {
+            transform: translateY(-3px);
+            color: white;
+        }
+
+        .btn-edit:hover { background: var(--secondary); box-shadow: 0 10px 20px rgba(255, 183, 3, 0.2); }
+        .btn-danger:hover { background: #ff4757; box-shadow: 0 10px 20px rgba(255, 71, 87, 0.2); }
 
         .alert-success {
-            padding: 16px 20px;
-            border-radius: 16px;
+            padding: 20px 25px;
+            border-radius: 20px;
             background: rgba(46, 213, 115, 0.1);
             color: #2ed573;
             border: 1px solid rgba(46, 213, 115, 0.2);
-            margin-bottom: 30px;
-            font-weight: 500;
+            margin-bottom: 40px;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
+            animation: slideInDown 0.5s ease;
         }
     </style>
 </head>
@@ -223,22 +232,21 @@ if (isset($_GET['delete_id'])) {
                                     $img_thumb = !empty($row['gambar']) ? '/Kaya Tene/uploads/' . htmlspecialchars($row['gambar']) : 'https://via.placeholder.com/80x80?text=No+Foto';
                                     $tanggal = date('d M Y', strtotime($row['tanggal']));
                                     echo "<tr>
-                                            <td>{$no}</td>
-                                            <td><img src='{$img_thumb}' alt='foto' style='width: 60px; height: 60px; object-fit: cover; border-radius: 50%;' onerror=\"this.src='https://via.placeholder.com/60x60?text=?'\"></td>
-                                            <td style='font-weight: 600;'>" . htmlspecialchars($row['nama']) . "</td>
-                                            <td style='color: var(--primary); font-size: 0.95rem;'>" . htmlspecialchars($row['jabatan']) . "</td>
-                                            <td style='color: var(--text-muted); font-size: 0.9rem;'>{$tanggal}</td>
-                                            <td>
-                                                <div class='action-btns'>
-                                                    <a href='edit-struktur.php?id={$row['id']}' class='btn btn-small btn-edit'>Edit</a>
-                                                    <a href='struktur-organisasi.php?delete_id={$row['id']}' onclick=\"return confirm('Apakah Anda yakin ingin menghapus anggota ini?');\" class='btn btn-small btn-danger'>Hapus</a>
-                                                </div>
-                                            </td>
-                                          </tr>";
+                                             <td>{$no}</td>
+                                             <td><img src='{$img_thumb}' alt='member' class='member-thumb' onerror=\"this.src='https://ui-avatars.com/api/?name=" . urlencode($row['nama']) . "&background=random'\"></td>
+                                             <td style='font-weight: 700; color: var(--text-main);'>" . htmlspecialchars($row['nama']) . "</td>
+                                             <td><span class='badge-status' style='background: rgba(255, 90, 0, 0.1); color: var(--primary); padding: 5px 12px; border-radius: 8px; font-size: 0.8rem;'>" . htmlspecialchars($row['jabatan']) . "</span></td>
+                                             <td>
+                                                 <div class='action-btns'>
+                                                     <a href='edit-struktur.php?id={$row['id']}' class='btn btn-small btn-edit'><i class='fa-solid fa-pen-to-square'></i></a>
+                                                     <a href='struktur-organisasi.php?delete_id={$row['id']}' onclick=\"return confirm('Apakah Anda yakin ingin menghapus data pengurus ini?');\" class='btn btn-small btn-danger'><i class='fa-solid fa-trash'></i></a>
+                                                 </div>
+                                             </td>
+                                           </tr>";
                                     $no++;
                                 }
                             } else {
-                                echo "<tr><td colspan='6' style='text-align: center; color: var(--text-muted); padding: 40px;'>Belum ada data struktur organisasi.</td></tr>";
+                                echo "<tr><td colspan='5' style='text-align: center; color: var(--text-muted); padding: 40px;'>Belum ada data struktur organisasi.</td></tr>";
                             }
                             ?>
                         </tbody>

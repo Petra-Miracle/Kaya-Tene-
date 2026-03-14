@@ -10,6 +10,7 @@ require_once '../config/Connection.php';
     <title>Semua Galeri - Yayasan Kaya Tene</title>
     <link rel="stylesheet" href="/Kaya Tene/css/style.css">
     <link rel="stylesheet" href="/Kaya Tene/css/berita.css">
+    <?php include '../partials/HeaderAssets.php'; ?>
     <style>
         .gallery-item:hover img {
             transform: scale(1.1);

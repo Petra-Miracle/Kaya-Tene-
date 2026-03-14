@@ -22,20 +22,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if ($result && $result->num_rows > 0) {
             $admin = $result->fetch_assoc();
-            // Verify password using password_hash
             if (password_verify($password, $admin['password'])) {
                 $_SESSION['admin_id'] = $admin['id'];
                 $_SESSION['admin_username'] = $admin['username'];
                 header("Location: dashboard.php");
                 exit();
             } else {
-                $error = "Password yang Anda masukkan salah.";
+                $error = "Password salah.";
             }
         } else {
             $error = "Username tidak ditemukan.";
         }
     } else {
-        $error = "Silakan isi username dan password.";
+        $error = "Lengkapi data login.";
     }
 }
 ?>
@@ -47,32 +46,68 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Admin - Yayasan Kaya Tene</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --login-bg: #0f1115;
+            --card-bg: #1a1d23;
+            --input-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body.light-mode {
+            --login-bg: #f5f7fa;
+            --card-bg: #ffffff;
+            --input-border: #e2e8f0;
+        }
+
         body {
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            background: var(--bg-darker);
+            background: var(--login-bg);
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            transition: background 0.3s ease;
         }
 
         .login-card {
-            width: 90%;
-            max-width: 450px;
+            width: 100%;
+            max-width: 400px;
+            background: var(--card-bg);
             padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            border-top: 4px solid var(--primary);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--input-border);
+            animation: fadeIn 0.5s ease;
         }
 
-        @media (max-width: 480px) {
-            .login-card {
-                padding: 30px 20px;
-            }
-            .floating-toggle {
-                top: 20px;
-                right: 20px;
-            }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-img {
+            height: 40px;
+            margin-bottom: 12px;
+        }
+
+        .login-card h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0 8px;
+            color: var(--text-main);
+        }
+
+        .login-card p.subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 30px;
         }
 
         .form-group {
@@ -80,185 +115,193 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             text-align: left;
         }
 
-        .form-label {
+        .form-group label {
             display: block;
             margin-bottom: 8px;
-            color: var(--text-muted);
-            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-main);
+            font-size: 0.9rem;
+        }
+
+        .input-group {
+            position: relative;
         }
 
         .form-control {
             width: 100%;
-            padding: 15px;
-            border-radius: 10px;
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid var(--glass-border);
+            padding: 12px 16px;
+            border-radius: 8px;
+            background: transparent;
+            border: 1px solid var(--input-border);
             color: var(--text-main);
-            font-size: 1rem;
-            transition: border-color 0.3s;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            outline: none;
+            box-sizing: border-box;
         }
 
         .form-control:focus {
-            outline: none;
             border-color: var(--primary);
-        }
-
-        .password-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
+            box-shadow: 0 0 0 3px rgba(255, 90, 0, 0.1);
         }
 
         .password-toggle {
             position: absolute;
-            right: 15px;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
             cursor: pointer;
             color: var(--text-muted);
-            transition: color 0.3s;
+            font-size: 0.9rem;
+            z-index: 10;
         }
 
         .password-toggle:hover {
             color: var(--primary);
         }
 
-        .alert {
-            padding: 15px;
-            border-radius: 10px;
-            background: rgba(220, 53, 69, 0.1);
-            color: #ff6b6b;
-            border: 1px solid rgba(220, 53, 69, 0.3);
-            margin-bottom: 25px;
-        }
-
         .login-btn {
             width: 100%;
-            padding: 15px;
-            font-size: 1.1rem;
+            padding: 12px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
             margin-top: 10px;
         }
 
-        .register-link {
-            display: block;
-            margin-top: 25px;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.95rem;
-            transition: color 0.3s;
+        .login-btn:hover {
+            background: var(--primary-dark);
         }
 
-        .register-link:hover {
+        .alert-error {
+            background: #fff5f5;
+            color: #c53030;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            border: 1px solid #fed7d7;
+            text-align: center;
+        }
+
+        body:not(.light-mode) .alert-error {
+            background: rgba(254, 178, 178, 0.1);
+            border-color: rgba(254, 178, 178, 0.2);
+            color: #feb2b2;
+        }
+
+        .footer-action {
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
             color: var(--primary);
         }
 
-        .floating-toggle {
-            position: absolute;
-            top: 30px;
-            right: 30px;
-            width: 45px;
-            height: 45px;
+        /* Top Theme Toggle - Discrete */
+        .theme-switch {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+        }
+
+        .theme-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--input-border);
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            border: 1px solid var(--glass-border);
-            background: var(--bg-card);
+            cursor: pointer;
             color: var(--text-main);
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .floating-toggle:hover {
-            transform: scale(1.1);
-            color: var(--primary);
-            border-color: var(--primary);
         }
     </style>
 </head>
 
 <body>
-    <?php require_once '../partials/Loader.php'; ?>
+    <div class="theme-switch">
+        <button class="theme-btn" id="toggleTheme">
+            <i class="fa-solid fa-moon" id="themeIcon"></i>
+        </button>
+    </div>
 
-    <button class="floating-toggle" id="themeToggle" title="Toggle Light/Dark Mode">
-        <i class="fa-solid fa-moon" id="themeIcon"></i>
-    </button>
-
-    <div class="login-card glass">
-        <a href="../index.php" class="logo" style="justify-content: center; margin-bottom: 30px;">
-            <img src="../Public/img/Logo_Yayasan-new.png" alt="Logo Yayasan"
-                style="height: 40px; transform: scale(1.8); margin-right: 25px;">
-            <span style="color: var(--primary);">Yayasan</span> Kaya Tene
-        </a>
-        <h2 style="margin-bottom: 30px;">Login Admin</h2>
+    <div class="login-card">
+        <div class="logo-section">
+            <img src="../Public/img/Logo_Yayasan-new.png" alt="Logo" class="logo-img">
+            <h2>Masuk Admin</h2>
+            <p class="subtitle">Kelola konten Yayasan Kaya Tene</p>
+        </div>
 
         <?php if (!empty($error)): ?>
-            <div class="alert">
-                <?= htmlspecialchars($error) ?>
-            </div>
+            <div class="alert-error"><?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
 
-        <form method="POST" action="">
+        <form method="POST">
             <div class="form-group">
-                <label for="username" class="form-label">Username</label>
-                <input type="text" id="username" name="username" class="form-control"
-                    placeholder="Masukkan username admin" required>
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" class="form-control" 
+                    placeholder="Username admin" required autocomplete="username">
             </div>
 
             <div class="form-group">
-                <label for="password" class="form-label">Password</label>
-                <div class="password-wrapper">
-                    <input type="password" id="password" name="password" class="form-control"
-                        placeholder="Masukkan password" required>
-                    <i class="fa-solid fa-eye password-toggle" onclick="togglePassword('password', this)"></i>
+                <label for="password">Password</label>
+                <div class="input-group">
+                    <input type="password" id="password" name="password" class="form-control" 
+                        placeholder="••••••••" required autocomplete="current-password">
+                    <i class="fa-solid fa-eye password-toggle" id="togglePass"></i>
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary login-btn">Masuk ke Dashboard</button>
+            <button type="submit" class="login-btn">Login Sekarang</button>
         </form>
+
+        <div class="footer-action">
+            <a href="../index.php" class="back-link">← Kembali ke Website</a>
+        </div>
     </div>
 
     <script>
-        function togglePassword(inputId, iconElement) {
-            const input = document.getElementById(inputId);
-            if (input.type === "password") {
-                input.type = "text";
-                iconElement.classList.remove('fa-eye');
-                iconElement.classList.add('fa-eye-slash');
-            } else {
-                input.type = "password";
-                iconElement.classList.remove('fa-eye-slash');
-                iconElement.classList.add('fa-eye');
-            }
-        }
+        // Password Visibility Toggle
+        const togglePass = document.getElementById('togglePass');
+        const password = document.getElementById('password');
 
-        // Theme Toggle Logic
-        const themeBtn = document.getElementById('themeToggle');
-        const themeIcon = document.getElementById('themeIcon');
+        togglePass.addEventListener('click', () => {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            togglePass.classList.toggle('fa-eye-slash');
+        });
+
+        // Simple Theme Toggle
+        const btn = document.getElementById('toggleTheme');
+        const icon = document.getElementById('themeIcon');
         const body = document.body;
 
-        const currentTheme = localStorage.getItem('theme');
-        if (currentTheme === 'light') {
+        if (localStorage.getItem('theme') === 'light') {
             body.classList.add('light-mode');
-            if (themeIcon) {
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
-            }
+            icon.classList.replace('fa-moon', 'fa-sun');
         }
 
-        if (themeBtn) {
-            themeBtn.addEventListener('click', () => {
-                body.classList.toggle('light-mode');
-                if (body.classList.contains('light-mode')) {
-                    localStorage.setItem('theme', 'light');
-                    themeIcon.classList.remove('fa-moon');
-                    themeIcon.classList.add('fa-sun');
-                } else {
-                    localStorage.setItem('theme', 'dark');
-                    themeIcon.classList.remove('fa-sun');
-                    themeIcon.classList.add('fa-moon');
-                }
-            });
-        }
+        btn.addEventListener('click', () => {
+            body.classList.toggle('light-mode');
+            const isLight = body.classList.contains('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            icon.classList.replace(isLight ? 'fa-moon' : 'fa-sun', isLight ? 'fa-sun' : 'fa-moon');
+        });
     </script>
 </body>
 

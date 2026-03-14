@@ -36,6 +36,7 @@ $tanggal = date('d F Y', strtotime($berita['tanggal']));
         <?= htmlspecialchars($berita['judul']) ?> - Yayasan Kaya Tene
     </title>
     <link rel="stylesheet" href="/Kaya Tene/css/style.css">
+    <?php include '../partials/HeaderAssets.php'; ?>
     <style>
         .article-header {
             padding: 150px 0 50px;

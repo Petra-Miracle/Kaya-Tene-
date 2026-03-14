@@ -1,8 +1,8 @@
 <?php
 require_once 'config/Connection.php';
 
-// Fetch dynamic carousel slides
-$carousel_sql = "SELECT * FROM Carousel ORDER BY id ASC";
+// Fetch dynamic carousel slides - optimized query with specific columns
+$carousel_sql = "SELECT id, judul, deskripsi, gambar, btn_text, btn_link FROM Carousel ORDER BY id ASC";
 $carousel_result = $conn->query($carousel_sql);
 $db_slides = [];
 if ($carousel_result && $carousel_result->num_rows > 0) {
@@ -26,6 +26,17 @@ if ($carousel_result && $carousel_result->num_rows > 0) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yayasan Kaya Tene - Bergerak Berdampak</title>
+    
+    <!-- DNS Prefetch & Preconnect untuk loading lebih cepat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    
+    <!-- Load fonts dengan display=swap untuk performa lebih baik -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS Utama -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -160,7 +171,7 @@ if ($carousel_result && $carousel_result->num_rows > 0) {
 
             <div class="about-grid">
                 <div class="about-image">
-                    <img src="Public/img/hero-2.jpeg" alt="Masyarakat Pedesaan NTT">
+                    <img src="Public/img/hero-2.jpeg" alt="Masyarakat Pedesaan NTT" loading="lazy">
                 </div>
                 <div class="about-text glass" style="padding: 40px; border-radius: 20px;">
                     <p>
@@ -232,7 +243,7 @@ if ($carousel_result && $carousel_result->num_rows > 0) {
 
                         echo '
                         <div class="news-card glass">
-                            <img src="' . $gambar . '" alt="Berita" class="news-img" onerror="this.src=\'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80\'">
+                            <img src="' . $gambar . '" alt="Berita" class="news-img" loading="lazy" onerror="this.src=\'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80\'">
                             <div class="news-content">
                                 <div class="news-date">' . $tanggal . '</div>
                                 <h4 class="news-title">' . htmlspecialchars($row['judul']) . '</h4>
@@ -259,47 +270,41 @@ if ($carousel_result && $carousel_result->num_rows > 0) {
 
     <?php include 'views/galeri.php'; ?>
 
-    <section class="section" id="kontak" style="background-color: var(--bg-card);">
+    <section class="section" id="kontak">
         <div class="container">
             <h2 class="section-title">Hubungi <span class="text-gradient">Kami</span></h2>
-            <div
-                style="text-align: center; max-width: 700px; margin: 0 auto 50px; color: var(--text-muted); font-size: 1.1rem;">
-                Mari berkolaborasi dan wujudkan perubahan bersama Yayasan Kaya Tene. Jangan ragu untuk menghubungi kami
-                melalui media di bawah ini.
-            </div>
+            <p class="section-subtitle-center">
+                Mari berkolaborasi dan wujudkan perubahan bersama Yayasan Kaya Tene. Jangan ragu untuk menghubungi kami melalui media di bawah ini.
+            </p>
 
-            <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; text-align: center;">
+            <div class="contact-grid">
                 <!-- WhatsApp -->
                 <a href="https://wa.me/6282341067389?text=Halo%20Admin%20Yayasan%20Kaya%20Tene%2C%20saya%20tertarik%20dan%20ingin%20bertanya%20lebih%20lanjut%20mengenai%20program%20yayasan."
-                    target="_blank" class="glass"
-                    style="padding: 40px 30px; border-radius: 20px; text-decoration: none; transition: transform 0.4s ease, box-shadow 0.4s ease;">
-                    <i class="fa-brands fa-whatsapp"
-                        style="font-size: 3.5rem; color: #25D366; margin-bottom: 20px; display: block;"></i>
-                    <h3 style="color: var(--text-main); margin-bottom: 10px; font-size: 1.5rem;">WhatsApp</h3>
-                    <p style="color: var(--text-muted); font-size: 1rem;">Chat langsung dengan admin kami untuk info
-                        lebih lanjut.</p>
+                    target="_blank" class="contact-card">
+                    <div class="contact-icon wa">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </div>
+                    <h3>WhatsApp</h3>
+                    <p>Chat langsung dengan admin kami untuk informasi lebih lanjut.</p>
                 </a>
 
                 <!-- Instagram -->
-                <a href="https://www.instagram.com/kaya_tene?igsh=MWJlYm15MXBhbzFzdA==" target="_blank" class="glass"
-                    style="padding: 40px 30px; border-radius: 20px; text-decoration: none; transition: transform 0.4s ease, box-shadow 0.4s ease;">
-                    <i class="fa-brands fa-instagram"
-                        style="font-size: 3.5rem; color: #E1306C; margin-bottom: 20px; display: block; background: -webkit-linear-gradient(#f09433, #e6683c, #dc2743, #cc2366, #bc1888); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
-                    <h3 style="color: var(--text-main); margin-bottom: 10px; font-size: 1.5rem;">Instagram</h3>
-                    <p style="color: var(--text-muted); font-size: 1rem;">Ikuti kegiatan dan update harian terbaru kami
-                        di Instagram.</p>
+                <a href="https://www.instagram.com/kaya_tene?igsh=MWJlYm15MXBhbzFzdA==" target="_blank" class="contact-card">
+                    <div class="contact-icon ig">
+                        <i class="fa-brands fa-instagram"></i>
+                    </div>
+                    <h3>Instagram</h3>
+                    <p>Ikuti kegiatan harian dan kabar terbaru kami di Instagram.</p>
                 </a>
 
                 <!-- Email -->
                 <a href="https://mail.google.com/mail/?view=cm&fs=1&to=yayasankayatene@gmail.com&su=Tanya%20Sistem%20Yayasan%20Kaya%20Tene&body=Halo%20Admin%20Kaya%20Tene,%0A%0ASaya%20ingin%20bertanya:"
-                    target="_blank" class="glass"
-                    style="padding: 40px 30px; border-radius: 20px; text-decoration: none; transition: transform 0.4s ease, box-shadow 0.4s ease;">
-                    <i class="fa-regular fa-envelope"
-                        style="font-size: 3.5rem; color: var(--primary); margin-bottom: 20px; display: block;"></i>
-                    <h3 style="color: var(--text-main); margin-bottom: 10px; font-size: 1.5rem;">Email</h3>
-                    <p style="color: var(--text-muted); font-size: 1rem;">Kirimkan tawaran kerjasama atau pertanyaan via
-                        email.</p>
+                    target="_blank" class="contact-card">
+                    <div class="contact-icon mail">
+                        <i class="fa-regular fa-envelope"></i>
+                    </div>
+                    <h3>Email</h3>
+                    <p>Kirimkan tawaran kerjasama atau pertanyaan umum melalui email.</p>
                 </a>
             </div>
         </div>
@@ -312,3 +317,9 @@ if ($carousel_result && $carousel_result->num_rows > 0) {
 
 
 </html>
+<?php
+// Flush output buffer untuk kirim konten ke browser lebih cepat
+if (ob_get_level() > 0) {
+    ob_end_flush();
+}
+?>

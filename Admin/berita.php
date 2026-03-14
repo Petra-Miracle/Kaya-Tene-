@@ -40,127 +40,147 @@ if (isset($_GET['delete_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manajemen Berita - Yayasan Kaya Tene</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .table-container {
-            border-radius: 24px;
-            padding: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 35px;
             margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
 
         .table-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
+        }
+
+        .table-header h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -1px;
         }
 
         table {
             width: 100%;
             border-collapse: separate;
-            border-spacing: 0 10px;
-        }
-
-        th,
-        td {
-            padding: 20px;
-            text-align: left;
+            border-spacing: 0 12px;
         }
 
         th {
             color: var(--text-muted);
-            font-weight: 700;
+            font-weight: 800;
             text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 1.5px;
-            border-bottom: 2px solid var(--glass-border);
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            padding: 0 20px 10px;
+            opacity: 0.6;
         }
 
         td {
             color: var(--text-main);
-            background: var(--bg-card);
-            border-top: 1px solid var(--glass-highlight);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.02);
+            padding: 20px;
+            border-top: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border);
+            vertical-align: middle;
         }
 
+        body.light-mode td { background: rgba(0, 0, 0, 0.01); }
+
         td:first-child {
-            border-top-left-radius: 16px;
-            border-bottom-left-radius: 16px;
-            border-left: 1px solid var(--glass-highlight);
+            border-top-left-radius: 18px;
+            border-bottom-left-radius: 18px;
+            border-left: 1px solid var(--glass-border);
         }
 
         td:last-child {
-            border-top-right-radius: 16px;
-            border-bottom-right-radius: 16px;
-            border-right: 1px solid rgba(0, 0, 0, 0.2);
+            border-top-right-radius: 18px;
+            border-bottom-right-radius: 18px;
+            border-right: 1px solid var(--glass-border);
         }
 
-        tr {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        tbody tr:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-sm);
-        }
-
-        tbody tr:hover td {
+        tr:hover td {
             background: rgba(255, 90, 0, 0.05);
+            border-color: rgba(255, 90, 0, 0.2);
+        }
+
+        .news-thumb {
+            width: 70px;
+            height: 46px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border: 2px solid var(--glass-border);
         }
 
         .action-btns {
             display: flex;
-            gap: 12px;
+            gap: 10px;
         }
 
         .btn-small {
-            padding: 8px 18px;
-            font-size: 0.9rem;
-            border-radius: 10px;
+            height: 40px;
+            padding: 0 18px;
+            font-size: 0.88rem;
+            border-radius: 12px;
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 700;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s;
-        }
-
-        .btn-danger {
-            background: rgba(220, 53, 69, 0.1);
-            color: #ff4757;
-            border: 1px solid rgba(220, 53, 69, 0.2);
-        }
-
-        .btn-danger:hover {
-            background: #ff4757;
-            color: white;
-            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.3);
-            transform: translateY(-2px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            gap: 8px;
         }
 
         .btn-edit {
             background: rgba(255, 183, 3, 0.1);
             color: var(--secondary);
-            border: 1px solid rgba(255, 183, 3, 0.3);
+            border: 1px solid rgba(255, 183, 3, 0.2);
         }
 
         .btn-edit:hover {
             background: var(--secondary);
             color: #fff;
-            box-shadow: 0 5px 15px rgba(255, 183, 3, 0.3);
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 183, 3, 0.2);
+        }
+
+        .btn-danger {
+            background: rgba(255, 71, 87, 0.1);
+            color: #ff4757;
+            border: 1px solid rgba(255, 71, 87, 0.2);
+        }
+
+        .btn-danger:hover {
+            background: #ff4757;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 71, 87, 0.2);
         }
 
         .alert-success {
-            padding: 16px 20px;
-            border-radius: 16px;
+            padding: 20px 25px;
+            border-radius: 20px;
             background: rgba(46, 213, 115, 0.1);
             color: #2ed573;
             border: 1px solid rgba(46, 213, 115, 0.2);
-            margin-bottom: 30px;
-            font-weight: 500;
+            margin-bottom: 40px;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
+            backdrop-filter: blur(10px);
+            animation: slideInDown 0.5s ease;
+        }
+
+        @keyframes slideInDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
     </style>
 </head>
@@ -230,14 +250,14 @@ if (isset($_GET['delete_id'])) {
                                     
                                     echo "<tr>
                                             <td>{$no}</td>
-                                            <td><img src='{$img_thumb}' alt='thumb' style='width: 60px; height: 40px; object-fit: cover; border-radius: 5px;' onerror=\"this.src='https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80'\"></td>
-                                            <td style='font-weight: 500;'>" . htmlspecialchars($row['judul']) . "</td>
-                                            <td style='color: var(--text-muted);'>{$tanggal}</td>
+                                            <td><img src='{$img_thumb}' alt='thumb' class='news-thumb' onerror=\"this.src='https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80'\"></td>
+                                            <td style='font-weight: 700; color: var(--text-main);'>" . htmlspecialchars($row['judul']) . "</td>
+                                            <td style='color: var(--text-muted); font-weight: 500;'>{$tanggal}</td>
                                             <td>
                                                 <div class='action-btns'>
-                                                    <a href='../views/detail-berita.php?id={$row['id']}' target='_blank' class='btn btn-small glass' style='color: var(--text-main); border: 1px solid var(--glass-border);'>Lihat</a>
-                                                    <a href='edit-berita.php?id={$row['id']}' class='btn btn-small btn-edit'>Edit</a>
-                                                    <a href='berita.php?delete_id={$row['id']}' onclick=\"return confirm('Apakah Anda yakin ingin menghapus berita ini secara permanen?');\" class='btn btn-small btn-danger'>Hapus</a>
+                                                    <a href='../views/detail-berita.php?id={$row['id']}' target='_blank' class='btn btn-small glass' style='color: var(--text-muted);'><i class='fa-regular fa-eye'></i></a>
+                                                    <a href='edit-berita.php?id={$row['id']}' class='btn btn-small btn-edit'><i class='fa-solid fa-pen-to-square'></i></a>
+                                                    <a href='berita.php?delete_id={$row['id']}' onclick=\"return confirm('Apakah Anda yakin ingin menghapus berita ini secara permanen?');\" class='btn btn-small btn-danger'><i class='fa-solid fa-trash'></i></a>
                                                 </div>
                                             </td>
                                           </tr>";
